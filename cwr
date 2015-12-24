@@ -1,0 +1,19 @@
+#!/usr/bin/php
+<?php
+
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(-1);
+
+require(__DIR__ . '/vendor/autoload.php');
+
+if (version_compare(phpversion(), '5.6.0', '<')) {
+    exit("It's Time To Move Forward. PHP7 already stable! Minimum use PHP 5.6." . PHP_EOL);
+}
+
+$application = new src\Application();
+$result = $application->run();
+if ($result !== true) {
+    echo $application->getError() . PHP_EOL;
+}
+exit();

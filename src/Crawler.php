@@ -48,13 +48,7 @@ class Crawler
      * Просмотренные url
      * @var array
      */
-    private $_seenUrls = [];
-
-    /**
-     * Просмотренные hash страниц
-     * @var array
-     */
-    private $_seenHashes = [];
+    private $_seen = [];
 
     /**
      * Зарегистрированные события
@@ -69,6 +63,8 @@ class Crawler
     private $_startUrl;
 
     /**
+     * Запуск процесса
+     *
      * @param $url
      * @param int $depth
      */
@@ -91,19 +87,9 @@ class Crawler
      *
      * @return array
      */
-    public function getSeenUrls()
+    public function getSeen()
     {
-        return $this->_seenUrls;
-    }
-
-    /**
-     * Список просмотренных hash страниц
-     *
-     * @return array
-     */
-    public function getSeenHashes()
-    {
-        return $this->_seenHashes;
+        return $this->_seen;
     }
 
     /**
@@ -145,7 +131,7 @@ class Crawler
      */
     private function _process($url, $depth = 5)
     {
-        if (isset($this->_seenUrls[$url]) || $depth === 0) {
+        if (isset($this->_seen[$url]) || $depth === 0) {
             return;
         }
 
@@ -160,12 +146,11 @@ class Crawler
         $body = $xpath->query('/html/body');
         $pageHash = md5($dom->saveXml($body->item(0)));
 
-        if (isset($this->_seenHashes[$pageHash])) {
+        if (in_array($pageHash, $this->_seen)) {
             return;
         }
 
-        $this->_seenUrls[$url] = true;
-        $this->_seenHashes[$pageHash] = true;
+        $this->_seen[$url] = $pageHash;
 
         if (is_callable($this->_events[self::EVENT_HIT_CRAWL])) {
             call_user_func_array($this->_events[self::EVENT_HIT_CRAWL], [$url, $depth, $dom]);
@@ -197,14 +182,18 @@ class Crawler
         if (substr($href, 0, 2) == '//') {
             return false;
         }
+
         $currentUrl = rtrim($currentUrl, '/');
         $parseCurrentUrl = parse_url($currentUrl);
         $domainURL = $parseCurrentUrl['scheme'] . '://' . $parseCurrentUrl['host'] . '/';
         $parts = parse_url($href);
+
         if (!is_array($parts)) {
             return false;
         }
+
         $isExternal = false;
+
         if (isset($parts['scheme']) && (
                 $parts['scheme'] == 'mailto' ||
                 $parts['scheme'] == 'skype' ||
@@ -213,9 +202,11 @@ class Crawler
         ) {
             return false;
         }
+
         if (isset($parts['host'])) {
             $isExternal = true;
         }
+
         if (isset($parts['path'])) {
             if (!empty($parts['path']) && $parts['path'][0] == '/') {
                 if (mb_strlen($parts['path']) > 1) {
@@ -233,15 +224,18 @@ class Crawler
                 return $domainURL . implode('/', array_reverse($explodeParseCurrentUrl)) . '/' . str_replace('../', '', $parts['path']);
             }
         }
+
         if (!$isExternal) {
             if (!isset($parts['host'])) {
                 return $domainURL . $this->unparseUrl($parts);
             }
             return $currentUrl . '/' . $this->unparseUrl($parts);
         }
+
         if (isset($parts['host'])) {
             $parts['host'] = rtrim($parts['host'], '/') . '/';
         }
+
         return $this->unparseUrl($parts);
     }
 
@@ -287,19 +281,23 @@ class Crawler
      * @param $url
      * @return bool
      */
-    public function isCorrectPage($url) {
+    public function isCorrectPage($url)
+    {
         $headers = @get_headers($url, 1);
         if ($headers && is_array($headers)) {
+
             if (isset($headers[0])) {
                 if (trim(substr($headers[0], -6)) != '200 OK') {
                     return false;
                 }
             }
+
             if (isset($headers["Content-Type"])) {
-                if(stristr($headers["Content-Type"], 'text/html') === false) {
+                if (stristr($headers["Content-Type"], 'text/html') === false) {
                     return false;
                 }
             }
+
             return true;
         }
         return false;

@@ -4,6 +4,7 @@ namespace src;
 
 use \DOMDocument as DOMDocument;
 use \Exception as Exception;
+use  src\interfaces as interfaces;
 
 /**
  * Handler
@@ -15,21 +16,58 @@ class Handler
     /**
      * @var array
      */
-    private $_options = [];
+    protected $_options = [];
 
     /**
      * @var null|array
      */
-    private $_report = null;
+    protected $_report = null;
+
+    /**
+     * @var null|array
+     */
+    protected $_reportOrderByKey = 'imgLength';
+
+    /**
+     * @var interfaces\CrawlerInterface
+     */
+    private $_crawler;
+
+    /**
+     * @var interfaces\WriterInterface
+     */
+    private $_writer;
 
     /**
      * Handler constructor.
+     *
      * @param array $options
+     * @param interfaces\CrawlerInterface $crawler
+     * @param interfaces\WriterInterface $writer
      */
-    public function __construct(array $options)
+    public function __construct(array $options, interfaces\CrawlerInterface $crawler, interfaces\WriterInterface $writer)
     {
         $this->validate($options);
+
         $this->_options = $options;
+        $this->_crawler = $crawler;
+        $this->_writer = $writer;
+    }
+
+    /**
+     * @return interfaces\CrawlerInterface
+     */
+    public function getCrawler()
+    {
+        return $this->_crawler;
+    }
+
+    /**
+     * @return interfaces\WriterInterface
+     */
+    public function getWriter()
+    {
+        return $this->_writer;
     }
 
     /**
@@ -51,9 +89,9 @@ class Handler
     {
         $this->_report = [];
 
-        $crawler = new Crawler();
+        $crawler = $this->_crawler;
 
-        $crawler->on(Crawler::EVENT_HIT_CRAWL, function ($href, $depth, DOMDocument $dom) {
+        $crawler->on($crawler::EVENT_HIT_CRAWL, function ($href, $depth, DOMDocument $dom) {
             $start = microtime(true);
             $imgLength = $dom->getElementsByTagName('img')->length;
             $time = microtime(true) - $start;
@@ -67,11 +105,11 @@ class Handler
             $this->show('  - ' . $href . ' [img: ' . $imgLength . ']' . PHP_EOL);
         });
 
-        $crawler->on(Crawler::EVENT_BEFORE_CRAWL, function ($href, $depth) {
+        $crawler->on($crawler::EVENT_BEFORE_CRAWL, function ($href, $depth) {
             $this->show('Start crawl' . PHP_EOL);
         });
 
-        $crawler->on(Crawler::EVENT_AFTER_CRAWL, function ($href, $depth) {
+        $crawler->on($crawler::EVENT_AFTER_CRAWL, function ($href, $depth) {
             $this->show('Finish crawl' . PHP_EOL);
         });
 
@@ -80,6 +118,7 @@ class Handler
 
     /**
      * Генерация отчета
+     *
      * @throws Exception
      */
     public function report()
@@ -90,11 +129,10 @@ class Handler
 
         $this->arrayOrderBy();
 
-        $writer = new HtmlWriter();
-        $writer->setReport($this->_report);
-        $writer->save();
+        $this->_writer->setReport($this->_report);
+        $this->_writer->save();
 
-        $this->show('Generate report file: ' . $writer->getReportName() . PHP_EOL);
+        $this->show('Generate report file: ' . $this->_writer->getReportName() . PHP_EOL);
     }
 
     /**
@@ -131,11 +169,11 @@ class Handler
      *
      * @return mixed
      */
-    private function arrayOrderBy()
+    protected function arrayOrderBy()
     {
         usort($this->_report, function ($item1, $item2) {
-            if ($item1['imgLength'] == $item2['imgLength']) return 0;
-            return $item1['imgLength'] < $item2['imgLength'] ? 1 : -1;
+            if ($item1[$this->_reportOrderByKey] == $item2[$this->_reportOrderByKey]) return 0;
+            return $item1[$this->_reportOrderByKey] < $item2[$this->_reportOrderByKey] ? 1 : -1;
         });
     }
 

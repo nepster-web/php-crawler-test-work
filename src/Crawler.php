@@ -32,43 +32,30 @@ use \Exception as Exception;
  *
  * @package src
  */
-class Crawler
+class Crawler implements \src\interfaces\CrawlerInterface
 {
-    /**
-     * События
-     *  - Хит парсинга
-     *  - Перед парсингом
-     *  - После парсинга
-     */
-    const EVENT_HIT_CRAWL = 'event_hit_crawl';
-    const EVENT_BEFORE_CRAWL = 'event_before_crawl';
-    const EVENT_AFTER_CRAWL = 'event_after_crawl';
-
     /**
      * Просмотренные url
      * @var array
      */
-    private $_seen = [];
+    protected $_seen = [];
 
     /**
      * Зарегистрированные события
      * @var array
      */
-    private $_events = [];
+    protected $_events = [];
 
     /**
      * Стартовая страница для парсинга
      * @var string
      */
-    private $_startUrl;
+    protected $_startUrl;
 
     /**
-     * Запуск процесса
-     *
-     * @param $url
-     * @param int $depth
+     * @inheritdoc
      */
-    function crawl($url, $depth = 5)
+    public function crawl($url, $depth = 5)
     {
         if (is_callable($this->_events[self::EVENT_BEFORE_CRAWL])) {
             call_user_func_array($this->_events[self::EVENT_BEFORE_CRAWL], [$url, $depth]);
@@ -83,9 +70,7 @@ class Crawler
     }
 
     /**
-     * Список просмотренных url страниц
-     *
-     * @return array
+     * @inheritdoc
      */
     public function getSeen()
     {
@@ -93,11 +78,7 @@ class Crawler
     }
 
     /**
-     * Вешаем события
-     *
-     * @param $event
-     * @param $cb
-     * @throws Exception
+     * @inheritdoc
      */
     public function on($event, $cb)
     {
@@ -119,63 +100,7 @@ class Crawler
     }
 
     /**
-     * Решение для рекурсивного обхода сайта
-     * http://stackoverflow.com/a/2313270
-     *
-     * Примечание:
-     * Решение вполне не плохое, кроме выбора URL. Данная функция не
-     * охватывала очень много вариантов значения href.
-     *
-     * @param $url
-     * @param int $depth
-     */
-    private function _process($url, $depth = 5)
-    {
-        if (isset($this->_seen[$url]) || $depth === 0) {
-            return;
-        }
-
-        if (!$this->isCorrectPage($url) || $this->getDomain($url) != $this->getDomain($this->_startUrl)) {
-            return;
-        }
-
-        $dom = new DOMDocument('1.0');
-        @$dom->loadHTMLFile($url);
-
-        $xpath = new \DOMXPath($dom);
-        $body = $xpath->query('/html/body');
-        $pageHash = md5($dom->saveXml($body->item(0)));
-
-        if (in_array($pageHash, $this->_seen)) {
-            return;
-        }
-
-        $this->_seen[$url] = $pageHash;
-
-        if (is_callable($this->_events[self::EVENT_HIT_CRAWL])) {
-            call_user_func_array($this->_events[self::EVENT_HIT_CRAWL], [$url, $depth, $dom]);
-        }
-
-        $anchors = $dom->getElementsByTagName('a');
-        foreach ($anchors as $element) {
-            $href = $element->getAttribute('href');
-            $href = $this->buildUrl($href, $url);
-            if ($href) {
-                $this->_process($href, $depth - 1);
-            }
-        }
-    }
-
-    /**
-     * Собрать URL на основе текущей страницы
-     *
-     * Примечание:
-     * Данная функция охватывает множество вероятных
-     * значений href, однако может быть несовершенной.
-     *
-     * @param string $href
-     * @param string $currentUrl
-     * @return bool|string
+     * @inheritdoc
      */
     public function buildUrl($href, $currentUrl)
     {
@@ -240,10 +165,7 @@ class Crawler
     }
 
     /**
-     * Собрать URL из массива на основе функции parse_url
-     *
-     * @param $parsed_url
-     * @return string
+     * @inheritdoc
      */
     public function unparseUrl(array $parsed_url)
     {
@@ -260,10 +182,7 @@ class Crawler
     }
 
     /**
-     * Получить домен сайта из url
-     *
-     * @param $url
-     * @return bool
+     * @inheritdoc
      */
     public function getDomain($url)
     {
@@ -276,10 +195,7 @@ class Crawler
     }
 
     /**
-     * Проверить работает ли url адрес
-     *
-     * @param $url
-     * @return bool
+     * @inheritdoc
      */
     public function isCorrectPage($url)
     {
@@ -301,5 +217,53 @@ class Crawler
             return true;
         }
         return false;
+    }
+
+    /**
+     * Решение для рекурсивного обхода сайта
+     * http://stackoverflow.com/a/2313270
+     *
+     * Примечание:
+     * Решение вполне неплохое, кроме выбора URL. Данная функция не
+     * охватывала очень много вариантов значения href.
+     *
+     * @param $url
+     * @param int $depth
+     */
+    protected function _process($url, $depth = 5)
+    {
+        if (isset($this->_seen[$url]) || $depth === 0) {
+            return;
+        }
+
+        if (!$this->isCorrectPage($url) || $this->getDomain($url) != $this->getDomain($this->_startUrl)) {
+            return;
+        }
+
+        $dom = new DOMDocument('1.0');
+        @$dom->loadHTMLFile($url);
+
+        $xpath = new \DOMXPath($dom);
+        $body = $xpath->query('/html/body');
+        $pageHash = md5($dom->saveXml($body->item(0)));
+
+        if (in_array($pageHash, $this->_seen)) {
+            return;
+        }
+
+        $this->_seen[$url] = $pageHash;
+
+        if (is_callable($this->_events[self::EVENT_HIT_CRAWL])) {
+            call_user_func_array($this->_events[self::EVENT_HIT_CRAWL], [$url, $depth, $dom]);
+        }
+
+        $anchors = $dom->getElementsByTagName('a');
+        foreach ($anchors as $element) {
+            $href = $element->getAttribute('href');
+            $href = $this->buildUrl($href, $url);
+            if ($href) {
+                $this->_process($href, $depth - 1);
+            }
+        }
     }
 }

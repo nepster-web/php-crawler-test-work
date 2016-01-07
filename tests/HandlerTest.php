@@ -4,7 +4,9 @@ namespace tests;
 
 require_once(__DIR__ . '/../vendor/autoload.php');
 
+use src\Crawler;
 use src\Handler;
+use src\writers\HtmlWriter;
 
 /**
  * Handler Test
@@ -12,13 +14,25 @@ use src\Handler;
  */
 class HandlerTest extends \PHPUnit_Framework_TestCase
 {
+    public $crawler;
+    public $writer;
+
+    /**
+     * @inheritdoc
+     */
+    protected function setUp()
+    {
+        $this->crawler = new Crawler();
+        $this->writer = new HtmlWriter();
+    }
+
     public function testValidateUrl()
     {
         $error = false;
         try {
             $handler = new Handler([
                 'url' => 'http://site.ru',
-            ]);
+            ], $this->crawler, $this->writer);
         } catch (\Exception $e) {
             $error = true;
         }
@@ -32,7 +46,7 @@ class HandlerTest extends \PHPUnit_Framework_TestCase
             $handler = new Handler([
                 'url' => 'http://site.ru',
                 'depth' => 7,
-            ]);
+            ], $this->crawler, $this->writer);
         } catch (\Exception $e) {
             $error = true;
         }
@@ -45,7 +59,7 @@ class HandlerTest extends \PHPUnit_Framework_TestCase
         try {
             $handler = new Handler([
                 'url' => 'test',
-            ]);
+            ], $this->crawler, $this->writer);
         } catch (\Exception $e) {
             $error = $e->getMessage();
         }
@@ -59,7 +73,7 @@ class HandlerTest extends \PHPUnit_Framework_TestCase
             $handler = new Handler([
                 'url' => 'http://site.ru',
                 'depth' => 'test',
-            ]);
+            ], $this->crawler, $this->writer);
         } catch (\Exception $e) {
             $error = $e->getMessage();
         }

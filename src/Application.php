@@ -3,6 +3,8 @@
 namespace src;
 
 use \Exception as Exception;
+use src\writers\HtmlWriter;
+use src\Crawler;
 
 /**
  * Application
@@ -53,7 +55,11 @@ class Application
     public function run()
     {
         try {
-            $handler = new Handler($this->_options);
+
+            $crawler = new Crawler();
+            $writer = new HtmlWriter();
+
+            $handler = new Handler($this->_options, $crawler, $writer);
             $handler->crawl();
             $handler->report();
 

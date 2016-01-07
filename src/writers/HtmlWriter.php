@@ -1,6 +1,6 @@
 <?php
 
-namespace src;
+namespace src\writers;
 
 use \DOMDocument as DOMDocument;
 use \Exception as Exception;
@@ -10,53 +10,37 @@ use \Exception as Exception;
  *
  * @package src
  */
-class HtmlWriter
+class HtmlWriter implements \src\interfaces\WriterInterface
 {
     /**
      * @var string
      */
-    private $_extension = '.html';
+    protected $_extension = '.html';
 
     /**
      * @var string
      */
-    private $_reportsDir = __DIR__ . '/../reports';
+    protected $_reportsDir = __DIR__ . '/../../reports';
 
     /**
      * @var array
      */
-    private $_report = [];
+    protected $_report = [];
 
     /**
      * @var string
      */
-    private $_reportName;
+    protected $_reportName;
 
     /**
      * @var array
      */
-    private $_params = [
+    protected $_params = [
         'href' => 'URL Адрес',
         'depth' => 'Уровень вложенности',
         'processTime' => 'Время парсинга',
         'imgLength' => 'Кол-во изображений',
     ];
-
-    /**
-     * Сгенерировать имя для файла отчета
-     */
-    public function generateReportName()
-    {
-        $this->_reportName = 'report_' . date('d.m.Y') . $this->_extension;
-    }
-
-    /**
-     * @return string
-     */
-    public function getReportName()
-    {
-        return $this->_reportName;
-    }
 
     /**
      * @return string
@@ -68,10 +52,15 @@ class HtmlWriter
     }
 
     /**
-     * Сохранить результат
-     *
-     * @return bool
-     * @throws Exception
+     * @inheritdoc
+     */
+    public function getReportName()
+    {
+        return $this->_reportName;
+    }
+
+    /**
+     * @inheritdoc
      */
     public function save()
     {
@@ -92,6 +81,14 @@ class HtmlWriter
         }
 
         return true;
+    }
+
+    /**
+     * Сгенерировать имя для файла отчета
+     */
+    protected function generateReportName()
+    {
+        $this->_reportName = 'report_' . date('d.m.Y') . $this->_extension;
     }
 
     /**

@@ -1,0 +1,10 @@
+version: '2'
+services:
+    php-cli:
+        container_name: crawler-test-work_php_cli
+        build: ./docker/php-cli
+        command: top -b
+        working_dir: /www
+        volumes:
+            - ./www:/www
+            - ./docker/php-cli/php.ini:/usr/local/etc/php/conf.d/php.ini

@@ -23,6 +23,7 @@ start:
 	make chmod-permissions
 	docker-compose up -d --build
 	make chmod-permissions
+	make composer-install
 
 
 ## make restart

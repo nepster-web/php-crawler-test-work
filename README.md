@@ -11,3 +11,11 @@ make cwr ARGS="--url==http://robotstxt.org.ru --depth=2"
 ```
 
 Результат сохраняется в директорию  **www/reports**
+
+
+# Тесты 
+Приложение использует [PHPUnit](https://phpunit.de/) для тестирования:
+
+```
+make tests
+```

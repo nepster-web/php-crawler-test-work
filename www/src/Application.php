@@ -1,10 +1,9 @@
 <?php
 
-namespace src;
+namespace App;
 
+use App\Writer\HtmlWriter;
 use \Exception as Exception;
-use src\writers\HtmlWriter;
-use src\Crawler;
 
 /**
  * Application
@@ -13,7 +12,7 @@ use src\Crawler;
  * php cwr --url=http://site.ru --depth=5
  * php cwr -u=http://site.ru -d=5
  *
- * @package src
+ * @package App
  */
 class Application
 {

@@ -1,16 +1,15 @@
 <?php
 
-namespace src\writers;
+namespace App\Writer;
 
-use \DOMDocument as DOMDocument;
 use \Exception as Exception;
 
 /**
- * HtmlWriter
+ * Class HtmlWriter
  *
- * @package src
+ * @package App\Writer
  */
-class HtmlWriter implements \src\interfaces\WriterInterface
+class HtmlWriter implements \App\Contract\WriterInterface
 {
     /**
      * @var string

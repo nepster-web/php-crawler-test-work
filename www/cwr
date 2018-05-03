@@ -11,7 +11,7 @@ if (version_compare(phpversion(), '5.6.0', '<')) {
     exit("It's Time To Move Forward. PHP7 already stable! Minimum use PHP 5.6." . PHP_EOL);
 }
 
-$application = new src\Application();
+$application = new App\Application();
 $result = $application->run();
 if ($result !== true) {
     echo $application->getError() . PHP_EOL;

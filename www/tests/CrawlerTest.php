@@ -1,16 +1,17 @@
 <?php
 
-namespace tests;
+namespace Tests;
 
 require_once(__DIR__ . '/../vendor/autoload.php');
 
-use src\Crawler;
+use App\Crawler;
 
 /**
- * Crawler Test
- * @package tests
+ * Class CrawlerTest
+ *
+ * @package Tests
  */
-class CrawlerTest extends \PHPUnit_Framework_TestCase
+class CrawlerTest extends \PHPUnit\Framework\TestCase
 {
     /**
      * @var Crawler

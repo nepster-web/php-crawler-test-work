@@ -1,10 +1,11 @@
 <?php
 
-namespace src\interfaces;
+namespace App\Contract;
 
 /**
- * Crawler Interface
- * @package src\interfaces
+ * Interface CrawlerInterface
+ *
+ * @package App\Contract
  */
 interface CrawlerInterface
 {

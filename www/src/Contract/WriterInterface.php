@@ -1,10 +1,11 @@
 <?php
 
-namespace src\interfaces;
+namespace App\Contract;
 
 /**
- * Writer Interface
- * @package src\interfaces
+ * Interface WriterInterface
+ *
+ * @package App\Contract
  */
 interface WriterInterface
 {

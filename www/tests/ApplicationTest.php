@@ -1,16 +1,17 @@
 <?php
 
-namespace tests;
+namespace Tests;
 
 require_once(__DIR__ . '/../vendor/autoload.php');
 
-use src\Application;
+use App\Application;
 
 /**
- * Application Test
- * @package tests
+ * Class ApplicationTest
+ *
+ * @package Tests
  */
-class ApplicationTest extends \PHPUnit_Framework_TestCase
+class ApplicationTest extends \PHPUnit\Framework\TestCase
 {
     public function testDefaultOptions()
     {

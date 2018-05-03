@@ -1,10 +1,10 @@
 <?php
 
-namespace src;
+namespace App;
 
-use \DOMDocument as DOMDocument;
 use \DOMXPath as DOMXPath;
 use \Exception as Exception;
+use \DOMDocument as DOMDocument;
 
 /**
  * Crawler
@@ -30,9 +30,9 @@ use \Exception as Exception;
  *
  * $crawler->crawl('http://site.ru', 5);
  *
- * @package src
+ * @package App
  */
-class Crawler implements \src\interfaces\CrawlerInterface
+class Crawler implements \App\Contract\CrawlerInterface
 {
     /**
      * Просмотренные url

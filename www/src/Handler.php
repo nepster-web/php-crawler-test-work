@@ -1,15 +1,15 @@
 <?php
 
-namespace src;
+namespace App;
 
-use \DOMDocument as DOMDocument;
 use \Exception as Exception;
-use  src\interfaces as interfaces;
+use \DOMDocument as DOMDocument;
+use  App\Contract as interfaces;
 
 /**
  * Handler
  *
- * @package src
+ * @package App
  */
 class Handler
 {

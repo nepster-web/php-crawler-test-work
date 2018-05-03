@@ -14,7 +14,7 @@
 ##==========================================================================
 
 BASH_DOCKER_COMPOSE_RUN_WITHOUT_TTL = docker-compose exec -T php-cli /bin/bash
-COMMAND_TESTS := APP_ENV=testing /www/vendor/bin/phpunit
+COMMAND_TESTS = /www/vendor/bin/phpunit
 
 
 ## make start
@@ -42,6 +42,24 @@ stop:
 ##==========================================================================
 cwr:
 	$(BASH_DOCKER_COMPOSE_RUN_WITHOUT_TTL)  -c "php ./cwr $(ARGS)"
+
+
+## make tests
+##==========================================================================
+tests:
+	$(BASH_DOCKER_COMPOSE_RUN_WITHOUT_TTL) -c "$(COMMAND_TESTS)"
+
+
+## make composer-install
+##==========================================================================
+composer-install:
+	$(BASH_DOCKER_COMPOSE_RUN_WITHOUT_TTL) -c "composer install"
+
+
+## make composer-update
+##==========================================================================
+composer-update:
+	$(BASH_DOCKER_COMPOSE_RUN_WITHOUT_TTL) -c "composer update"
 
 
 ## make chmod-permissions

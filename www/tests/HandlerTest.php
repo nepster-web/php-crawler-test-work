@@ -1,18 +1,19 @@
 <?php
 
-namespace tests;
+namespace Tests;
 
 require_once(__DIR__ . '/../vendor/autoload.php');
 
-use src\Crawler;
-use src\Handler;
-use src\writers\HtmlWriter;
+use App\Crawler;
+use App\Handler;
+use App\Writer\HtmlWriter;
 
 /**
- * Handler Test
- * @package tests
+ * Class HandlerTest
+ *
+ * @package Tests
  */
-class HandlerTest extends \PHPUnit_Framework_TestCase
+class HandlerTest extends \PHPUnit\Framework\TestCase
 {
     public $crawler;
     public $writer;

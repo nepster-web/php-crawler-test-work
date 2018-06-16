@@ -2,26 +2,24 @@
 
 namespace Tests;
 
-require_once(__DIR__ . '/../vendor/autoload.php');
-
-use App\Application;
+use App\CliApplication;
 
 /**
- * Class ApplicationTest
+ * Class CliApplicationTest
  *
  * @package Tests
  */
-class ApplicationTest extends \PHPUnit\Framework\TestCase
+class CliApplicationTest extends \PHPUnit\Framework\TestCase
 {
     public function testDefaultOptions()
     {
-        $app = new Application();
+        $app = new CliApplication();
         $this->assertEquals($app->getOptions(), ['url' => null, 'depth' => 5]);
     }
 
     public function testOptionPath()
     {
-        $app = new Application([
+        $app = new CliApplication([
             'depth' => 23
         ]);
         $this->assertEquals($app->getOptions(), ['url' => null, 'depth' => 23]);
@@ -29,7 +27,7 @@ class ApplicationTest extends \PHPUnit\Framework\TestCase
 
     public function testOptionUrl()
     {
-        $app = new Application([
+        $app = new CliApplication([
             'url' => 'http://site.ru'
         ]);
         $this->assertEquals($app->getOptions(), ['url' => 'http://site.ru', 'depth' => 5]);
@@ -37,7 +35,7 @@ class ApplicationTest extends \PHPUnit\Framework\TestCase
 
     public function testOptions()
     {
-        $app = new Application([
+        $app = new CliApplication([
             'url' => 'http://site.ru',
             'depth' => 7
         ]);

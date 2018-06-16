@@ -1,67 +1,80 @@
 <?php
 
-namespace App\Writer;
+namespace App\Infrastructure\Report;
 
-use \Exception as Exception;
+use LogicException;
 
 /**
- * Class HtmlWriter
+ * Class HtmlReportSaver
  *
- * @package App\Writer
+ * @package App\Infrastructure\Report
  */
-class HtmlWriter implements \App\Contract\WriterInterface
+class HtmlReportSaver implements \App\Infrastructure\Contract\ReportSaver
 {
     /**
      * @var string
      */
-    protected $_extension = '.html';
+    private $extension = '.html';
 
     /**
      * @var string
      */
-    protected $_reportsDir = __DIR__ . '/../../reports';
+    private $reportPath;
 
     /**
      * @var array
      */
-    protected $_report = [];
+    private $report = [];
 
     /**
      * @var string
      */
-    protected $_reportName;
+    private $reportName;
+
+    /**
+     * @var null|string
+     */
+    private $domain = null;
 
     /**
      * @var array
      */
-    protected $_params = [
-        'href' => 'URL Адрес',
-        'depth' => 'Уровень вложенности',
-        'processTime' => 'Время парсинга',
-        'imgLength' => 'Кол-во изображений',
+    private $params = [
+        'href' => 'URL',
+        'depth' => 'Depth',
+        'processTime' => 'Parsing time',
+        'imgLength' => 'Images amount',
     ];
 
     /**
-     * @return string
+     * HtmlReportSaver constructor.
+     *
      * @param array $report
+     * @param string $reportPath
+     * @param null|string $domain
      */
-    public function setReport(array $report)
-    {
-        $this->_report = $report;
+    public function __construct(
+        array $report,
+        string $reportPath,
+        ?string $domain
+    ) {
+        $this->report = $report;
+        $this->reportPath = $reportPath;
+        $this->domain = $domain;
     }
 
     /**
-     * @inheritdoc
+     * @return string
      */
-    public function getReportName()
+    public function getReportName(): string
     {
-        return $this->_reportName;
+        return $this->reportName;
     }
 
     /**
-     * @inheritdoc
+     * @throws LogicException
      */
-    public function save()
+    public function save(): void
     {
         $this->generateReportName();
 
@@ -69,36 +82,42 @@ class HtmlWriter implements \App\Contract\WriterInterface
             '{title}',
             '{content}',
         ], [
-            $this->_reportName,
+            $this->reportName,
             $this->generateTable(),
         ], $this->generateTemplate());
 
-        $file = $this->_reportsDir . DIRECTORY_SEPARATOR . $this->_reportName;
+        $file = $this->reportPath . DIRECTORY_SEPARATOR . $this->reportName;
 
         if (!file_put_contents($file, $report)) {
-            throw new Exception('Unable to write to a file: "' . $file . '"');
+            throw new LogicException('Unable to write to a file: "' . $file . '"');
         }
-
-        return true;
     }
 
     /**
-     * Сгенерировать имя для файла отчета
+     * Generate report name
      */
-    protected function generateReportName()
+    private function generateReportName(): void
     {
-        $this->_reportName = 'report_' . date('d.m.Y') . $this->_extension;
+        $dateWithExtension = date('d.m.Y') . $this->extension;
+        $this->reportName = 'report_' . $dateWithExtension;
+
+        if (empty($this->domain) === false) {
+            $domain = parse_url($this->domain, PHP_URL_HOST);
+            if (empty($domain) === false) {
+                $this->reportName = str_replace('report_', $domain . '_',  $this->reportName);
+            }
+        }
     }
 
     /**
-     * Сортировка массива по ключам
+     * Array sorting by keys
      * http://stackoverflow.com/a/348418
      *
      * @param array $array
      * @param array $orderArray
      * @return array
      */
-    protected function sortArrayByArray(array $array, array $orderArray)
+    private function sortArrayByArray(array $array, array $orderArray): array
     {
         $ordered = [];
         foreach ($orderArray as $key) {
@@ -113,15 +132,15 @@ class HtmlWriter implements \App\Contract\WriterInterface
     /**
      * @return string
      */
-    protected function generateTable()
+    private function generateTable(): string
     {
         $thead = '';
         $tbody = '';
 
-        $thead .= PHP_EOL . '<tr>' . PHP_EOL . $this->generateCell($this->_params, 'th') . '</tr>';
+        $thead .= PHP_EOL . '<tr>' . PHP_EOL . $this->generateCell($this->params, 'th') . '</tr>';
 
-        foreach ($this->_report as $records) {
-            $sortRecords = $this->sortArrayByArray($records, array_keys($this->_params));
+        foreach ($this->report as $records) {
+            $sortRecords = $this->sortArrayByArray($records, array_keys($this->params));
             $tbody .= PHP_EOL . '<tr>' . PHP_EOL . $this->generateCell($sortRecords, 'td') . '</tr>';
         }
 
@@ -133,11 +152,11 @@ class HtmlWriter implements \App\Contract\WriterInterface
      * @param string $type
      * @return string
      */
-    protected function generateCell(array $records, $type = 'td')
+    private function generateCell(array $records, string $type = 'td'): string
     {
         $result = '';
         foreach ($records as $_param => &$record) {
-            if ($_param == 'href' && $type != 'th') {
+            if ($_param === 'href' && $type !== 'th') {
                 $record = '<a href="' . $record . '" target="_blank">' . $record . '</a>';
             }
             $result .= '<' . $type . '> ' . $record . '  </' . $type . '>' . PHP_EOL;
@@ -148,7 +167,7 @@ class HtmlWriter implements \App\Contract\WriterInterface
     /**
      * @return string
      */
-    protected function generateTemplate()
+    private function generateTemplate(): string
     {
         return <<<EOD
 <!DOCTYPE html>
@@ -156,7 +175,6 @@ class HtmlWriter implements \App\Contract\WriterInterface
 <head>
     <meta charset="utf-8" />
     <title>{title}</title>
-
     <style type="text/css">
         * {margin: 0; padding: 0}
         html, body {width: 100%; height: 100%}
@@ -165,8 +183,8 @@ class HtmlWriter implements \App\Contract\WriterInterface
         a:hover {text-decoration: underline}
         table {border: solid 1px silver; width: 800px; margin: auto;}
         table th {border: solid 1px silver; padding: 5px;}
-        table thead tr  {background: rgba(0, 0, 0, 0.1)}
-        table tbody tr:hover {background: rgba(0, 0, 0, 0.1)}
+        table thead tr  {background: rgba(0, 0, 0, 0.05)}
+        table tbody tr:hover {background: rgba(0, 0, 0, 0.02)}
         table td:first-child {text-align: left;}
         table td {padding: 5px; border: solid 1px silver; text-align: center}
     </style>

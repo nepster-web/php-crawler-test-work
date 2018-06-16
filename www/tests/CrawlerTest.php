@@ -4,7 +4,7 @@ namespace Tests;
 
 require_once(__DIR__ . '/../vendor/autoload.php');
 
-use App\Crawler;
+use App\Library\Crawler;
 
 /**
  * Class CrawlerTest
@@ -31,6 +31,7 @@ class CrawlerTest extends \PHPUnit\Framework\TestCase
         $this->crawler = new Crawler();
     }
 
+    /** @test */
     public function testFunctionBuildUrl()
     {
         $this->assertEquals($this->crawler->buildUrl('/', 'http://site.ru'), 'http://site.ru/');
@@ -58,6 +59,8 @@ class CrawlerTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals($this->crawler->buildUrl('skype:username?call', 'http://site.ru'), '');
     }
 
+
+    /** @test */
     public function testFunctionUnparseUrl()
     {
         $url = $this->crawler->unparseUrl(parse_url('http://site.ru'));
@@ -68,6 +71,7 @@ class CrawlerTest extends \PHPUnit\Framework\TestCase
         $this->assertTrue($result);
     }
 
+    /** @test */
     public function testEvents()
     {
         $events = [
@@ -95,6 +99,7 @@ class CrawlerTest extends \PHPUnit\Framework\TestCase
         $this->assertTrue($events['eventAfter']);
     }
 
+    /** @test */
     public function testEventFail()
     {
         $error = false;
@@ -108,6 +113,7 @@ class CrawlerTest extends \PHPUnit\Framework\TestCase
         $this->assertTrue($error);
     }
 
+    /** @test */
     public function testFunctionGetDomain()
     {
         $this->assertEquals($this->crawler->getDomain('http://site.ru'), 'site.ru');
@@ -115,7 +121,8 @@ class CrawlerTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals($this->crawler->getDomain('http://www.test.site.ru'), 'site.ru');
     }
 
-    public function testFunctionIsCorrectPage()
+    /** @test */
+    public function testFunctionIsCorrectPage(): void
     {
         $this->assertTrue($this->crawler->isCorrectPage('http://php.net'));
         $this->assertFalse($this->crawler->isCorrectPage('http://php.net/images/logo.php'));

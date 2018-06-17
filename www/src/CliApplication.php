@@ -36,12 +36,11 @@ class CliApplication
      */
     public function __construct(Crawler $crawler)
     {
-        if (php_sapi_name() !== "cli") {
+        if (php_sapi_name() !== 'cli') {
             throw new Exception('The application must be running in CLI mode.');
         }
 
-        $params = $this->getParams();
-        $this->params = $this->setParams($params);
+        $this->setParams($this->getInputOptions());
 
         $this->crawler = $crawler;
     }
@@ -74,7 +73,7 @@ class CliApplication
     /**
      * @return array
      */
-    private function getParams(): array
+    private function getInputOptions(): array
     {
         $shortOpts = "";
         $longOpts = [];
@@ -88,10 +87,17 @@ class CliApplication
     }
 
     /**
-     * @param array $params
      * @return array
      */
-    private function setParams(array $params): array
+    public function getParams(): array
+    {
+        return $this->params;
+    }
+
+    /**
+     * @param array $params
+     */
+    public function setParams(array $params): void
     {
         $result = [];
 
@@ -111,6 +117,6 @@ class CliApplication
             }
         }
 
-        return $result;
+        $this->params = $result;
     }
 }

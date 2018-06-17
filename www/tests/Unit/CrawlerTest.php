@@ -1,38 +1,36 @@
 <?php
 
-namespace Tests;
-
-require_once(__DIR__ . '/../vendor/autoload.php');
+namespace Tests\Unit;
 
 use App\Library\Crawler;
 
 /**
  * Class CrawlerTest
  *
- * @package Tests
+ * @package Tests\Unit
  */
 class CrawlerTest extends \PHPUnit\Framework\TestCase
 {
     /**
      * @var Crawler
      */
-    public $crawler;
+    private $crawler;
 
     /**
-     * @var string
+     * CrawlerTest constructor.
+     * @param null|string $name
+     * @param array $data
+     * @param string $dataName
      */
-    public $startUrl;
-
-    /**
-     * @inheritdoc
-     */
-    protected function setUp()
+    public function __construct(?string $name = null, array $data = [], string $dataName = '')
     {
+        parent::__construct($name, $data, $dataName);
+
         $this->crawler = new Crawler();
     }
 
     /** @test */
-    public function testFunctionBuildUrl()
+    public function testFunctionBuildUrl(): void
     {
         $this->assertEquals($this->crawler->buildUrl('/', 'http://site.ru'), 'http://site.ru/');
         $this->assertEquals($this->crawler->buildUrl('http://site.ru/', 'http://site.ru/'), 'http://site.ru/');
@@ -59,9 +57,8 @@ class CrawlerTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals($this->crawler->buildUrl('skype:username?call', 'http://site.ru'), '');
     }
 
-
     /** @test */
-    public function testFunctionUnparseUrl()
+    public function testFunctionUnparseUrl(): void
     {
         $url = $this->crawler->unparseUrl(parse_url('http://site.ru'));
         $result = false;
@@ -72,7 +69,7 @@ class CrawlerTest extends \PHPUnit\Framework\TestCase
     }
 
     /** @test */
-    public function testEvents()
+    public function testEvents(): void
     {
         $events = [
             'eventHit' => false,
@@ -100,7 +97,7 @@ class CrawlerTest extends \PHPUnit\Framework\TestCase
     }
 
     /** @test */
-    public function testEventFail()
+    public function testEventFail(): void
     {
         $error = false;
         try {
@@ -114,7 +111,7 @@ class CrawlerTest extends \PHPUnit\Framework\TestCase
     }
 
     /** @test */
-    public function testFunctionGetDomain()
+    public function testFunctionGetDomain(): void
     {
         $this->assertEquals($this->crawler->getDomain('http://site.ru'), 'site.ru');
         $this->assertEquals($this->crawler->getDomain('http://www.site.ru'), 'site.ru');

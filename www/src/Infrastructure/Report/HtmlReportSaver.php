@@ -40,6 +40,7 @@ class HtmlReportSaver implements \App\Infrastructure\Contract\ReportSaver
      * @var array
      */
     private $params = [
+        'number' => 'Number',
         'href' => 'URL',
         'depth' => 'Depth',
         'processTime' => 'Parsing time',
@@ -104,7 +105,7 @@ class HtmlReportSaver implements \App\Infrastructure\Contract\ReportSaver
         if (empty($this->domain) === false) {
             $domain = parse_url($this->domain, PHP_URL_HOST);
             if (empty($domain) === false) {
-                $this->reportName = str_replace('report_', $domain . '_',  $this->reportName);
+                $this->reportName = str_replace('report_', $domain . '_', $this->reportName);
             }
         }
     }
@@ -134,17 +135,17 @@ class HtmlReportSaver implements \App\Infrastructure\Contract\ReportSaver
      */
     private function generateTable(): string
     {
-        $thead = '';
-        $tbody = '';
+        $tHead = '';
+        $tBody = '';
 
-        $thead .= PHP_EOL . '<tr>' . PHP_EOL . $this->generateCell($this->params, 'th') . '</tr>';
+        $tHead .= PHP_EOL . '<tr>' . PHP_EOL . $this->generateCell($this->params, 'th') . '</tr>';
 
         foreach ($this->report as $records) {
             $sortRecords = $this->sortArrayByArray($records, array_keys($this->params));
-            $tbody .= PHP_EOL . '<tr>' . PHP_EOL . $this->generateCell($sortRecords, 'td') . '</tr>';
+            $tBody .= PHP_EOL . '<tr>' . PHP_EOL . $this->generateCell($sortRecords, 'td') . '</tr>';
         }
 
-        return '<table>' . PHP_EOL . '<thead>' . $thead . '</thead>' . PHP_EOL . '<tbody>' . $tbody . PHP_EOL . '</tbody>' . PHP_EOL . '</table>';
+        return '<table>' . PHP_EOL . '<thead>' . $tHead . '</thead>' . PHP_EOL . '<tbody>' . $tBody . PHP_EOL . '</tbody>' . PHP_EOL . '</table>';
     }
 
     /**
@@ -185,7 +186,8 @@ class HtmlReportSaver implements \App\Infrastructure\Contract\ReportSaver
         table th {border: solid 1px silver; padding: 5px;}
         table thead tr  {background: rgba(0, 0, 0, 0.05)}
         table tbody tr:hover {background: rgba(0, 0, 0, 0.02)}
-        table td:first-child {text-align: left;}
+        table td:first-child {text-align: right;}
+        table td:nth-child(2) {text-align: left;}
         table td {padding: 5px; border: solid 1px silver; text-align: center}
     </style>
 </head>

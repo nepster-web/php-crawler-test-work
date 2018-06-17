@@ -30,6 +30,11 @@ class Crawler implements \App\Infrastructure\Contract\Crawler
     private $reportOrderByKey = 'imgLength';
 
     /**
+     * @var bool
+     */
+    private $reportOrderByDesc = true;
+
+    /**
      * Crawler constructor.
      */
     public function __construct()
@@ -45,16 +50,20 @@ class Crawler implements \App\Infrastructure\Contract\Crawler
         $crawler = $this->crawler;
 
         $crawler->on($crawler::EVENT_HIT_CRAWL, function (string $href, int $depth, DOMDocument $dom): void {
+            static $increment = 1;
+
             $start = microtime(true);
             $imgLength = $dom->getElementsByTagName('img')->length;
             $time = microtime(true) - $start;
             $processTime = sprintf('%.6F', $time);
             $this->report[] = [
+                'number' => $increment,
                 'href' => $href,
                 'depth' => $depth,
                 'imgLength' => $imgLength,
                 'processTime' => $processTime
             ];
+            ++$increment;
             $this->show('  - ' . $href . ' [depth: ' . $depth . '] [img: ' . $imgLength . ']' . PHP_EOL);
         });
 
@@ -99,11 +108,14 @@ class Crawler implements \App\Infrastructure\Contract\Crawler
      */
     private function arrayOrderBy(): void
     {
-        usort($this->report, function ($item1, $item2) {
+        usort($this->report, function (array $item1, array $item2): int {
             if ($item1[$this->reportOrderByKey] === $item2[$this->reportOrderByKey]) {
                 return 0;
             }
-            return $item1[$this->reportOrderByKey] < $item2[$this->reportOrderByKey] ? 1 : -1;
+            if ($this->reportOrderByDesc) {
+                return $item1[$this->reportOrderByKey] < $item2[$this->reportOrderByKey] ? 1 : -1;
+            }
+            return $item1[$this->reportOrderByKey] > $item2[$this->reportOrderByKey] ? 1 : -1;
         });
     }
 }

@@ -253,9 +253,7 @@ class Crawler
     }
 
     /**
-     * TODO: проблемы с обходом всео сайта
-     * TODO: make cwr ARGS="-u=http://robotstxt.org.ru -d=3"
-     * TODO: обходит только первую ссылку
+     * TODO: проблема с правильным выставлением depth
      *
      * The solution for recursive site crawling.
      * http://stackoverflow.com/a/2313270
@@ -265,16 +263,15 @@ class Crawler
      * This function does't consider many of href variations.
      *
      * @param string $url
-     * @param int $maxDepth
-     * @param int $startDepth
+     * @param int $depth
      */
-    private function process(string $url, int $maxDepth = 5, int $startDepth = 1): void
+    private function process(string $url, int $depth = 5): void
     {
-        if (isset($this->seen[$url]) || $maxDepth === 0) {
+        if (isset($this->seen[$url]) || $depth === 0) {
             return;
         }
 
-        if (!$this->isCorrectPage($url) || $this->getDomain($url) !== $this->getDomain($this->startUrl)) {
+        if ($this->isCorrectPage($url) === false || $this->getDomain($url) !== $this->getDomain($this->startUrl)) {
             return;
         }
 
@@ -292,7 +289,7 @@ class Crawler
         $this->seen[$url] = $pageHash;
 
         if (is_callable($this->events[self::EVENT_HIT_CRAWL])) {
-            call_user_func_array($this->events[self::EVENT_HIT_CRAWL], [$url, $startDepth, $dom]);
+            call_user_func_array($this->events[self::EVENT_HIT_CRAWL], [$url, $depth, $dom]);
         }
 
         $anchors = $dom->getElementsByTagName('a');
@@ -302,8 +299,9 @@ class Crawler
             $href = $element->getAttribute('href');
             $href = $this->buildUrl($href, $url);
             if ($href) {
-                $this->process($href, $maxDepth - 1, $startDepth + 1);
+                $this->process($href, $depth - 1);
             }
         }
     }
+
 }

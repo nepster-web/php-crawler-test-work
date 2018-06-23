@@ -8,6 +8,10 @@
 # $ make start         - run docker containers
 # $ make restart       - restart docker containers
 # $ make stop          - stop docker containers
+# $ make cwr           - run crawler
+# $ make tests         - run tests
+# $ composer-install   - composer install
+# $ composer-update    - composer update
 #
 #===========================================================================
 ## Variables

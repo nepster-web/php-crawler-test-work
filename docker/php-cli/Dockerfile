@@ -4,7 +4,6 @@ FROM php:7.2.5-cli
 
 WORKDIR /www
 
-
 RUN apt-get update -qq \
     && apt-get install -qy --no-install-recommends \
         git \
@@ -45,6 +44,7 @@ RUN docker-php-ext-install \
         mbstring \
         zip \
         xsl
+
 
 # Install composer
 RUN curl -sS https://getcomposer.org/installer | php -- \

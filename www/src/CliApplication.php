@@ -3,8 +3,9 @@
 namespace App;
 
 use Exception;
-use InvalidArgumentException;
 use App\Infrastructure\Contract\Crawler;
+use App\Infrastructure\Contract\Validator;
+use App\Infrastructure\Factory\ValidatorFactory;
 
 /**
  * CliApplication
@@ -52,17 +53,9 @@ class CliApplication
      */
     public function run(): void
     {
-        if (empty(trim($this->params['url']))) {
-            throw new InvalidArgumentException('Param "URL" must be set for the parsing running.');
-        }
-
-        if (filter_var($this->params['url'], FILTER_VALIDATE_URL) === false) {
-            throw new InvalidArgumentException('Param "URL" with value "' . $this->params['url'] . '" does\'t a valid URL.');
-        }
-
-        if (ctype_digit(strval($this->params['depth'])) === false) {
-            throw new InvalidArgumentException('Param "DEPTH" must be integer.');
-        }
+        /** @var Validator $validator */
+        $validator = (new ValidatorFactory())($this->params);
+        $validator->validate();
 
         $this->crawler->crawl(
             $this->params['url'],

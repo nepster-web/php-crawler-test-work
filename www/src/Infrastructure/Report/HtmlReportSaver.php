@@ -40,11 +40,10 @@ class HtmlReportSaver implements \App\Infrastructure\Contract\ReportSaver
      * @var array
      */
     private $params = [
-        'number' => 'Number',
         'href' => 'URL',
         'depth' => 'Depth',
-        'processTime' => 'Parsing time',
-        'imgLength' => 'Images amount',
+        'processTime' => 'Page load time',
+        'imgLength' => 'Amount images ',
     ];
 
     /**
@@ -186,8 +185,7 @@ class HtmlReportSaver implements \App\Infrastructure\Contract\ReportSaver
         table th {border: solid 1px silver; padding: 5px;}
         table thead tr  {background: rgba(0, 0, 0, 0.05)}
         table tbody tr:hover {background: rgba(0, 0, 0, 0.02)}
-        table td:first-child {text-align: right;}
-        table td:nth-child(2) {text-align: left;}
+        table td:first-child {text-align: left;}
         table td {padding: 5px; border: solid 1px silver; text-align: center}
     </style>
 </head>

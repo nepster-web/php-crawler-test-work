@@ -5,7 +5,9 @@ namespace App\Infrastructure;
 use Exception;
 use DOMDocument;
 use App\Library\Crawler as VendorCrawler;
+use App\Infrastructure\Helper\ArrayHelper;
 use App\Infrastructure\Contract\ReportSaver;
+use App\Infrastructure\Factory\ReportSaverFactory;
 
 /**
  * Class Crawler
@@ -35,6 +37,11 @@ class Crawler implements \App\Infrastructure\Contract\Crawler
     private $reportOrderByDesc = true;
 
     /**
+     * @var null|int
+     */
+    private $stepUrlLoadTime = null;
+
+    /**
      * Crawler constructor.
      */
     public function __construct()
@@ -49,29 +56,29 @@ class Crawler implements \App\Infrastructure\Contract\Crawler
     {
         $crawler = $this->crawler;
 
-        $crawler->on($crawler::EVENT_HIT_CRAWL, function (string $href, int $depth, DOMDocument $dom): void {
-            static $increment = 1;
+        $crawler->on($crawler::EVENT_BEFORE_HIT_CRAWL, function (string $href, int $depth): void {
+            $this->stepUrlLoadTime = microtime(true);
+        });
 
-            $start = microtime(true);
+        $crawler->on($crawler::EVENT_HIT_CRAWL, function (string $href, int $depth, DOMDocument $dom): void {
             $imgLength = $dom->getElementsByTagName('img')->length;
-            $time = microtime(true) - $start;
-            $processTime = sprintf('%.6F', $time);
+            $processTime = sprintf('%.6F', microtime(true) - $this->stepUrlLoadTime);
             $this->report[] = [
-                'number' => $increment,
                 'href' => $href,
                 'depth' => $depth,
                 'imgLength' => $imgLength,
                 'processTime' => $processTime
             ];
-            ++$increment;
+
+            $this->stepUrlLoadTime = null;
             $this->show('  - ' . $href . ' [depth: ' . $depth . '] [img: ' . $imgLength . ']' . PHP_EOL);
         });
 
-        $crawler->on($crawler::EVENT_BEFORE_CRAWL, function (string $href, int $depth): void {
+        $crawler->on($crawler::EVENT_BEFORE_CRAWL, function (string $href): void {
             $this->show('Start crawl' . PHP_EOL);
         });
 
-        $crawler->on($crawler::EVENT_AFTER_CRAWL, function (string $href, int $depth): void {
+        $crawler->on($crawler::EVENT_AFTER_CRAWL, function (string $href): void {
             $this->show('Finish crawl' . PHP_EOL);
         });
 
@@ -93,29 +100,12 @@ class Crawler implements \App\Infrastructure\Contract\Crawler
      */
     private function report(string $url)
     {
-        $this->arrayOrderBy();
+        ArrayHelper::arrayOrderByKey($this->report, $this->reportOrderByKey, $this->reportOrderByDesc);
 
         /** @var ReportSaver $reportSaver */
         $reportSaver = (new ReportSaverFactory())($this->report, $url);
         $reportSaver->save();
 
         $this->show('Generate report file: ' . $reportSaver->getReportName() . PHP_EOL);
-    }
-
-    /**
-     * Algorithm for sorting a multidimensional array
-     * http://stackoverflow.com/a/19454643
-     */
-    private function arrayOrderBy(): void
-    {
-        usort($this->report, function (array $item1, array $item2): int {
-            if ($item1[$this->reportOrderByKey] === $item2[$this->reportOrderByKey]) {
-                return 0;
-            }
-            if ($this->reportOrderByDesc) {
-                return $item1[$this->reportOrderByKey] < $item2[$this->reportOrderByKey] ? 1 : -1;
-            }
-            return $item1[$this->reportOrderByKey] > $item2[$this->reportOrderByKey] ? 1 : -1;
-        });
     }
 }

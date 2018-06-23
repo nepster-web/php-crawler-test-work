@@ -17,15 +17,19 @@ use LogicException;
  *
  * $crawler = new Crawler();
  *
- * $crawler->on(Crawler::EVENT_HIT_CRAWL, function($href, $maxDepth, DOMDocument $dom) {
- *   echo 'process url';
+ * $crawler->on(Crawler::EVENT_BEFORE_HIT_CRAWL, function($href, $depth) {
+ *   echo 'before url parse';
  * });
  *
- * $crawler->on(Crawler::EVENT_BEFORE_CRAWL, function($href, $maxDepth) {
+ * $crawler->on(Crawler::EVENT_HIT_CRAWL, function($href, $depth, DOMDocument $dom) {
+ *   echo 'after url parse';
+ * });
+ *
+ * $crawler->on(Crawler::EVENT_BEFORE_CRAWL, function($href) {
  *   echo 'before crawl';
  * });
  *
- * $crawler->on(Crawler::EVENT_AFTER_CRAWL, function($href, $maxDepth) {
+ * $crawler->on(Crawler::EVENT_AFTER_CRAWL, function($href) {
  *   echo 'after crawl';
  * });
  *
@@ -38,10 +42,12 @@ class Crawler
     /**
      * Events
      *
+     * - event before hit crawl
      * - event hit crawl
      * - event before crawl
      * - event after crawl
      */
+    const EVENT_BEFORE_HIT_CRAWL = 'event_before_hit_crawl';
     const EVENT_HIT_CRAWL = 'event_hit_crawl';
     const EVENT_BEFORE_CRAWL = 'event_before_crawl';
     const EVENT_AFTER_CRAWL = 'event_after_crawl';
@@ -51,7 +57,7 @@ class Crawler
      *
      * @var array
      */
-    private $seen = [];
+    private $visitedUrls = [];
 
     /**
      * Registered events
@@ -68,6 +74,13 @@ class Crawler
     private $startUrl;
 
     /**
+     * Max depth for stopping this script
+     *
+     * @var int
+     */
+    private $maxDepth = 5;
+
+    /**
      * Starts parsing process
      *
      * @param string $url
@@ -75,24 +88,25 @@ class Crawler
      */
     public function crawl(string $url, int $maxDepth = 5): void
     {
-        if (is_callable($this->events[self::EVENT_BEFORE_CRAWL])) {
-            call_user_func_array($this->events[self::EVENT_BEFORE_CRAWL], [$url, $maxDepth]);
+        if (isset($this->events[self::EVENT_BEFORE_CRAWL]) && is_callable($this->events[self::EVENT_BEFORE_CRAWL])) {
+            call_user_func_array($this->events[self::EVENT_BEFORE_CRAWL], [$url]);
         }
 
         $this->startUrl = rtrim($url, '/') . '/';
-        $this->process($this->startUrl, $maxDepth);
+        $this->maxDepth = $maxDepth;
+        $this->process($this->startUrl);
 
-        if (is_callable($this->events[self::EVENT_AFTER_CRAWL])) {
-            call_user_func_array($this->events[self::EVENT_AFTER_CRAWL], [$url, $maxDepth]);
+        if (isset($this->events[self::EVENT_AFTER_CRAWL]) && is_callable($this->events[self::EVENT_AFTER_CRAWL])) {
+            call_user_func_array($this->events[self::EVENT_AFTER_CRAWL], [$url]);
         }
     }
 
     /**
      * @return array
      */
-    public function getSeen(): array
+    public function getVisitedUrls(): array
     {
-        return $this->seen;
+        return $this->visitedUrls;
     }
 
     /**
@@ -102,6 +116,7 @@ class Crawler
     public function on(string $event, callable $cb): void
     {
         switch ($event) {
+            case self::EVENT_BEFORE_HIT_CRAWL:
             case self::EVENT_HIT_CRAWL:
             case self::EVENT_BEFORE_CRAWL:
             case self::EVENT_AFTER_CRAWL:
@@ -166,10 +181,10 @@ class Crawler
                         $countS = substr_count($parts['path'], '../');
                         array_splice($explodeParseCurrentUrl, 0, $countS);
 
-                        return $domainURL . implode('/',
-                                array_reverse($explodeParseCurrentUrl)) .
-                            '/' .
-                            str_replace('../', '', $parts['path']);
+                        return $domainURL . implode(
+                                '/',
+                                array_reverse($explodeParseCurrentUrl)
+                            ) . '/' . str_replace('../', '', $parts['path']);
                     }
                 }
             }
@@ -253,8 +268,6 @@ class Crawler
     }
 
     /**
-     * TODO: проблема с правильным выставлением depth
-     *
      * The solution for recursive site crawling.
      * http://stackoverflow.com/a/2313270
      *
@@ -265,14 +278,18 @@ class Crawler
      * @param string $url
      * @param int $depth
      */
-    private function process(string $url, int $depth = 5): void
+    private function process(string $url, int $depth = 1): void
     {
-        if (isset($this->seen[$url]) || $depth === 0) {
+        if (isset($this->visitedUrls[$url]) || $depth > $this->maxDepth) {
             return;
         }
 
         if ($this->isCorrectPage($url) === false || $this->getDomain($url) !== $this->getDomain($this->startUrl)) {
             return;
+        }
+
+        if (isset($this->events[self::EVENT_BEFORE_HIT_CRAWL]) && is_callable($this->events[self::EVENT_BEFORE_HIT_CRAWL])) {
+            call_user_func_array($this->events[self::EVENT_BEFORE_HIT_CRAWL], [$url, $depth]);
         }
 
         $dom = new DOMDocument('1.0');
@@ -282,13 +299,13 @@ class Crawler
         $body = $xpath->query('/html/body');
         $pageHash = md5($dom->saveXml($body->item(0)));
 
-        if (in_array($pageHash, $this->seen)) {
+        if (in_array($pageHash, $this->visitedUrls)) {
             return;
         }
 
-        $this->seen[$url] = $pageHash;
+        $this->visitedUrls[$url] = $pageHash;
 
-        if (is_callable($this->events[self::EVENT_HIT_CRAWL])) {
+        if (isset($this->events[self::EVENT_HIT_CRAWL]) && is_callable($this->events[self::EVENT_HIT_CRAWL])) {
             call_user_func_array($this->events[self::EVENT_HIT_CRAWL], [$url, $depth, $dom]);
         }
 
@@ -299,7 +316,7 @@ class Crawler
             $href = $element->getAttribute('href');
             $href = $this->buildUrl($href, $url);
             if ($href) {
-                $this->process($href, $depth - 1);
+                $this->process($href, $depth + 1);
             }
         }
     }

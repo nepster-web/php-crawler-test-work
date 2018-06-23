@@ -72,25 +72,31 @@ class CrawlerTest extends \PHPUnit\Framework\TestCase
     public function testEvents(): void
     {
         $events = [
+            'eventBeforeHit' => false,
             'eventHit' => false,
             'eventBefore' => false,
             'eventAfter' => false,
         ];
 
+        $this->crawler->on(Crawler::EVENT_BEFORE_HIT_CRAWL, function ($href, $depth) use (&$events) {
+            $events['eventBeforeHit'] = true;
+        });
+
         $this->crawler->on(Crawler::EVENT_HIT_CRAWL, function ($href, $depth, \DOMDocument $dom) use (&$events) {
             $events['eventHit'] = true;
         });
 
-        $this->crawler->on(Crawler::EVENT_BEFORE_CRAWL, function ($href, $depth) use (&$events)  {
+        $this->crawler->on(Crawler::EVENT_BEFORE_CRAWL, function ($href) use (&$events)  {
             $events['eventBefore'] = true;
         });
 
-        $this->crawler->on(Crawler::EVENT_AFTER_CRAWL, function ($href, $depth) use (&$events)  {
+        $this->crawler->on(Crawler::EVENT_AFTER_CRAWL, function ($href) use (&$events)  {
             $events['eventAfter'] = true;
         });
 
         $this->crawler->crawl('http://php.net', 1);
 
+        $this->assertTrue($events['eventBeforeHit']);
         $this->assertTrue($events['eventHit']);
         $this->assertTrue($events['eventBefore']);
         $this->assertTrue($events['eventAfter']);

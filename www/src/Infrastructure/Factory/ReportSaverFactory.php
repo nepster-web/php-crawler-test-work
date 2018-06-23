@@ -1,14 +1,15 @@
 <?php
 
-namespace App\Infrastructure;
+namespace App\Infrastructure\Factory;
 
+use App\Infrastructure\Config;
 use App\Infrastructure\Contract\ReportSaver;
 use App\Infrastructure\Report\HtmlReportSaver;
 
 /**
  * Class ReportSaverFactory
  *
- * @package App\Infrastructure
+ * @package App\Infrastructure\Factory
  */
 class ReportSaverFactory
 {
@@ -19,7 +20,7 @@ class ReportSaverFactory
      */
     public function __invoke(array $report, ?string $url = null): ReportSaver
     {
-        $reportDir = __DIR__ . '/../../reports';
+        $reportDir = Config::getInstance()->get('reportsPath');
 
         return (new HtmlReportSaver($report, $reportDir, $url));
     }

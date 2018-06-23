@@ -268,6 +268,8 @@ class Crawler
     }
 
     /**
+     * TODO: отрабатывает некорректно на 3+ вложенности.
+     *
      * The solution for recursive site crawling.
      * http://stackoverflow.com/a/2313270
      *

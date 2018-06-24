@@ -1,14 +1,14 @@
 <?php
 
-namespace Tests\Unit;
+namespace Tests\Application\Unit;
 
 use App\CliApplication;
 use Tests\_helper\Mock\CrawlerMock;
 
 /**
- * Class CliApplicationTest
+ * Class CliApplication
  *
- * @package Tests\Unit
+ * @package Tests\Application\Unit
  */
 class CliApplicationTest extends \PHPUnit\Framework\TestCase
 {

@@ -6,16 +6,16 @@ use InvalidArgumentException;
 
 /**
  * Class SimpleExceptionValidator
- * 
+ *
  * @package App\Infrastructure\Validation
  */
 class SimpleExceptionValidator implements \App\Infrastructure\Contract\Validator
 {
     /**
-     * @var array 
+     * @var array
      */
     private $data = [];
-    
+
     /**
      * SimpleExceptionValidator constructor.
      * @param array $data

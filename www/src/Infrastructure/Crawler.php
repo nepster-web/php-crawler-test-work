@@ -100,7 +100,11 @@ class Crawler implements \App\Infrastructure\Contract\Crawler
      */
     private function report(string $url)
     {
-        ArrayHelper::arrayOrderByKey($this->report, $this->reportOrderByKey, $this->reportOrderByDesc);
+        ArrayHelper::sortAssociativeArrayByKey(
+            $this->report,
+            $this->reportOrderByKey,
+            $this->reportOrderByDesc
+        );
 
         /** @var ReportSaver $reportSaver */
         $reportSaver = (new ReportSaverFactory())($this->report, $url);

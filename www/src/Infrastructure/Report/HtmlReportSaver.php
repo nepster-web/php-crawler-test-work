@@ -3,6 +3,7 @@
 namespace App\Infrastructure\Report;
 
 use LogicException;
+use App\Infrastructure\Helper\ArrayHelper;
 
 /**
  * Class HtmlReportSaver
@@ -110,26 +111,6 @@ class HtmlReportSaver implements \App\Infrastructure\Contract\ReportSaver
     }
 
     /**
-     * Array sorting by keys
-     * http://stackoverflow.com/a/348418
-     *
-     * @param array $array
-     * @param array $orderArray
-     * @return array
-     */
-    private function sortArrayByArray(array $array, array $orderArray): array
-    {
-        $ordered = [];
-        foreach ($orderArray as $key) {
-            if (array_key_exists($key, $array)) {
-                $ordered[$key] = $array[$key];
-                unset($array[$key]);
-            }
-        }
-        return $ordered + $array;
-    }
-
-    /**
      * @return string
      */
     private function generateTable(): string
@@ -140,11 +121,15 @@ class HtmlReportSaver implements \App\Infrastructure\Contract\ReportSaver
         $tHead .= PHP_EOL . '<tr>' . PHP_EOL . $this->generateCell($this->params, 'th') . '</tr>';
 
         foreach ($this->report as $records) {
-            $sortRecords = $this->sortArrayByArray($records, array_keys($this->params));
-            $tBody .= PHP_EOL . '<tr>' . PHP_EOL . $this->generateCell($sortRecords, 'td') . '</tr>';
+            ArrayHelper::sortAssociativeArrayByArray($records, array_keys($this->params));
+            $tBody .= PHP_EOL . '<tr>' . PHP_EOL . $this->generateCell($records, 'td') . '</tr>';
         }
 
-        return '<table>' . PHP_EOL . '<thead>' . $tHead . '</thead>' . PHP_EOL . '<tbody>' . $tBody . PHP_EOL . '</tbody>' . PHP_EOL . '</table>';
+        return
+            '<table>' . PHP_EOL .
+            '<thead>' . $tHead . '</thead>' . PHP_EOL .
+            '<tbody>' . $tBody . '</tbody>' . PHP_EOL .
+            '</table>';
     }
 
     /**

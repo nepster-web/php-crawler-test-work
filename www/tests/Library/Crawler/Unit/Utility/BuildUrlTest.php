@@ -56,6 +56,7 @@ class BuildUrlTest extends \PHPUnit\Framework\TestCase
             [['javascript:alert(\'Hello World!\');', 'http://site.ru'], ''],
             [['mailto:site@example.ru?Subject=Hello%20again', 'http://site.ru'], ''],
             [['skype:username?call', 'http://site.ru'], ''],
+            [['http://yandex.ru/cy?base=0&host=site.ru', 'http://site.ru'], '']
         ];
     }
 

@@ -17,19 +17,19 @@ use LogicException;
  *
  * $crawler = new Crawler();
  *
- * $crawler->on(Crawler::EVENT_BEFORE_HIT_CRAWL, function($href, $depth) {
+ * $crawler->on(Crawler::EVENT_BEFORE_HIT_CRAWL, function(string $href, string $depth): void {
  *   echo 'before url parse';
  * });
  *
- * $crawler->on(Crawler::EVENT_HIT_CRAWL, function($href, $depth, DOMDocument $dom) {
+ * $crawler->on(Crawler::EVENT_HIT_CRAWL, function(string $href, string $depth, DOMDocument $dom): void {
  *   echo 'after url parse';
  * });
  *
- * $crawler->on(Crawler::EVENT_BEFORE_CRAWL, function($href) {
+ * $crawler->on(Crawler::EVENT_BEFORE_CRAWL, function(string $href): void {
  *   echo 'before crawl';
  * });
  *
- * $crawler->on(Crawler::EVENT_AFTER_CRAWL, function($href) {
+ * $crawler->on(Crawler::EVENT_AFTER_CRAWL, function(string $href): void {
  *   echo 'after crawl';
  * });
  *
@@ -51,6 +51,13 @@ class Crawler
     const EVENT_HIT_CRAWL = 'event_hit_crawl';
     const EVENT_BEFORE_CRAWL = 'event_before_crawl';
     const EVENT_AFTER_CRAWL = 'event_after_crawl';
+
+    /**
+     * Detected pages for next depth
+     *
+     * @var array
+     */
+    private $detectedUrls = [];
 
     /**
      * Viewed urls
@@ -95,6 +102,10 @@ class Crawler
         $this->startUrl = rtrim($url, '/') . '/';
         $this->maxDepth = $maxDepth;
         $this->process($this->startUrl);
+
+
+        print_r($this->visitedUrls);
+
 
         if (isset($this->events[self::EVENT_AFTER_CRAWL]) && is_callable($this->events[self::EVENT_AFTER_CRAWL])) {
             call_user_func_array($this->events[self::EVENT_AFTER_CRAWL], [$url]);
@@ -244,7 +255,7 @@ class Crawler
      * @param string $url
      * @return bool
      */
-    public function isCorrectPage(string $url): bool
+    public function isAvailablePage(string $url): bool
     {
         $headers = @get_headers($url, 1);
         if ($headers && is_array($headers)) {
@@ -288,7 +299,7 @@ class Crawler
      *
      * @param string $url
      * @param int $depth
-     */
+     *//*
     private function process(string $url, int $depth = 1): void
     {
         if (isset($this->visitedUrls[$url]) || $depth > $this->maxDepth) {
@@ -322,7 +333,7 @@ class Crawler
 
         $anchors = $dom->getElementsByTagName('a');
 
-        /** @var DOMElement $element */
+        /** @var DOMElement $element *//*
         foreach ($anchors as $element) {
             $href = $element->getAttribute('href');
             $href = $this->buildUrl($href, $url);
@@ -330,6 +341,251 @@ class Crawler
                 $this->process($href, $depth + 1);
             }
         }
+    }*/
+
+
+
+
+
+
+
+    private function process(string $url, int $depth = 1): void
+    {
+        if (isset($this->visitedUrls[$url]) || $depth > $this->maxDepth) {
+            return;
+        }
+
+        if ($this->isAvailablePage($url) === false) {
+            return;
+        }
+
+        if ($this->hasDetectedUrl($url) === false) {
+            $this->expandDetectedUrlList($depth, [$url => null]);
+        }
+
+        if (isset($this->events[self::EVENT_BEFORE_HIT_CRAWL]) && is_callable($this->events[self::EVENT_BEFORE_HIT_CRAWL])) {
+            call_user_func_array($this->events[self::EVENT_BEFORE_HIT_CRAWL], [$url, $depth]);
+        }
+
+        $linkDom = $this->parseLink($url);
+        $hrefList = $this->parseAttributeTagValues($linkDom, 'a', 'href');
+
+        $urlList = $this->convertHrefListToUrlListForParentUrl($url, $hrefList);
+
+        $linkHash = $this->generateUniqueHashByDOMDocument($linkDom);
+
+
+        $this->setVisitedUrl($url, $linkHash);
+
+        if (isset($this->events[self::EVENT_HIT_CRAWL]) && is_callable($this->events[self::EVENT_HIT_CRAWL])) {
+            call_user_func_array($this->events[self::EVENT_HIT_CRAWL], [$url, $depth, $linkDom]);
+        }
+
+        $this->expandDetectedUrlList($depth + 1, $urlList);
+
+
+        // TODO: избавиться от якоря, но только, если такая ссылка уже (без якоря) уже есть.
+
+        print_r($this->detectedUrls);
+        die();
+
+
+        foreach ($urlList as $url) {
+            $this->process($url, $depth);
+        }
     }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    /**
+     * @param int $depth
+     * @param array $urlList
+     */
+    private function expandDetectedUrlList(int $depth, array $urlList): void
+    {
+        $result = [];
+        foreach ($urlList as $url => $visitHash) {
+            if (is_string($url) === false) {
+                list($visitHash, $url) = [null, $visitHash];
+            }
+            if ($this->hasDetectedUrl($url) === false) {
+                $result[$url] = $visitHash;
+            }
+        }
+
+        if (isset($this->detectedUrls[$depth]) === false) {
+            $this->detectedUrls[$depth] = [];
+        }
+
+        $this->detectedUrls[$depth] = array_merge($this->detectedUrls[$depth], $result);
+    }
+
+    /**
+     * @param string $url
+     * @return array|null
+     */
+    private function getDetectedUrl(string $url): ?array
+    {
+        foreach ($this->detectedUrls as $depth => $detectedUrls) {
+            if (isset($detectedUrls[$url])) {
+                return [$url => $detectedUrls[$url]];
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @param string $url
+     * @return bool
+     */
+    private function hasDetectedUrl(string $url): bool
+    {
+        return $this->getDetectedUrl($url) ? true : false;
+    }
+
+    /**
+     * @param string $url
+     * @return bool
+     */
+    private function hasVisitedUrl(string $url): bool
+    {
+        if ($detectedUrl = $this->getDetectedUrl($url)) {
+            $key = key($detectedUrl);
+            return !empty($detectedUrl[$key]);
+        }
+
+        return false;
+    }
+
+    /**
+     * @param string $url
+     * @param string $hash
+     */
+    private function setVisitedUrl(string $url, string $hash): void
+    {
+        foreach ($this->detectedUrls as $depth => &$detectedUrls) {
+            if (array_key_exists($url, $detectedUrls)) {
+                $detectedUrls[$url] = $hash;
+                break;
+            }
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    /**
+     * @param string $url
+     * @return bool
+     */
+    private function isStartUrl(string $url): bool
+    {
+        $url = rtrim($url, '/') . '/';
+
+        return ($url === $this->startUrl);
+    }
+
+
+    /**
+     * @param DOMDocument $dom
+     * @return string
+     */
+    private function generateUniqueHashByDOMDocument(DOMDocument $dom): string
+    {
+        $xpath = new DOMXPath($dom);
+        $body = $xpath->query('/html/body');
+
+        return md5($dom->saveXml($body->item(0)));
+    }
+
+    /**
+     * @param string $url
+     * @param array $hrefList
+     * @return array
+     */
+    private function convertHrefListToUrlListForParentUrl(string $url, array $hrefList): array
+    {
+        $urlList = [];
+        foreach ($hrefList as $href) {
+            $url = $this->buildUrl($href, $url);
+            if (
+                is_null($url) === false &&
+                $this->isStartUrl($url) === false &&
+                $this->getDomain($url) === $this->getDomain($this->startUrl) &&
+                in_array($url, $urlList) === false
+            ) {
+                array_push($urlList, $url);
+            }
+        }
+
+        return array_values($urlList);
+    }
+
+    /**
+     * @param string $url
+     * @return DOMDocument|null
+     */
+    private function parseLink(string $url): ?DOMDocument
+    {
+        $dom = new DOMDocument('1.0');
+        @$dom->loadHTMLFile($url);
+
+        if (is_object($dom) && isset($dom->documentURI) && empty($dom->documentURI) == false) {
+            return $dom;
+        }
+
+        return null;
+    }
+
+    /**
+     * @param DOMDocument $dom
+     * @param string $tag
+     * @param string $attribute
+     * @return array
+     */
+    private function parseAttributeTagValues(DOMDocument $dom, string $tag, string $attribute): array
+    {
+        $anchors = $dom->getElementsByTagName($tag);
+        $attributeValues = [];
+
+        /** @var DOMElement $element * */
+        foreach ($anchors as $element) {
+            $value = $element->getAttribute($attribute);
+            array_push($attributeValues, $value);
+        }
+
+        return $attributeValues;
+    }
 }

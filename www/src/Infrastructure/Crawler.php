@@ -4,9 +4,10 @@ namespace App\Infrastructure;
 
 use Exception;
 use DOMDocument;
-use App\Library\Crawler as VendorCrawler;
 use App\Infrastructure\Helper\ArrayHelper;
 use App\Infrastructure\Contract\ReportSaver;
+use App\Infrastructure\Factory\CrawlerFactory;
+use App\Library\Crawler\Crawler as VendorCrawler;
 use App\Infrastructure\Factory\ReportSaverFactory;
 
 /**
@@ -46,7 +47,7 @@ class Crawler implements \App\Infrastructure\Contract\Crawler
      */
     public function __construct()
     {
-        $this->crawler = new VendorCrawler();
+        $this->crawler = (new CrawlerFactory())();
     }
 
     /**

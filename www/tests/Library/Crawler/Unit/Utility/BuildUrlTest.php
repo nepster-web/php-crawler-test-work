@@ -51,7 +51,9 @@ class BuildUrlTest extends \PHPUnit\Framework\TestCase
             [['../../info', 'http://site.ru/s1/s2/s3/s4'], 'http://site.ru/s1/s2/info'],
 
             [['//info', 'http://site.ru'], ''],
+            [['#info', 'http://site.ru'], ''],
 
+            [['tel:00000000000', 'http://site.ru'], ''],
             [['javascript://', 'http://site.ru'], ''],
             [['javascript:alert(\'Hello World!\');', 'http://site.ru'], ''],
             [['mailto:site@example.ru?Subject=Hello%20again', 'http://site.ru'], ''],

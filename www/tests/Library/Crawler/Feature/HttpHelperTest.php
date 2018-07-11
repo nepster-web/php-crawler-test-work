@@ -2,30 +2,15 @@
 
 namespace Tests\Library\Crawler\Feature;
 
-use App\Library\Crawler;
+use App\Library\Crawler\Helper\HttpHelper;
 
 /**
- * Class IsAvailableUrlTest
+ * Class HttpHelperTest
  *
  * @package Tests\Library\Crawler\Feature
  */
-class IsAvailableUrlTest extends \PHPUnit\Framework\TestCase
+class HttpHelperTest extends \PHPUnit\Framework\TestCase
 {
-    /**
-     * @var Crawler
-     */
-    private $crawler;
-
-    /**
-     * @inheritdoc
-     */
-    public function setUp(): void
-    {
-        parent::setUp();
-
-        $this->crawler = new Crawler();
-    }
-
     /**
      * @inheritdoc
      */
@@ -49,7 +34,7 @@ class IsAvailableUrlTest extends \PHPUnit\Framework\TestCase
      */
     public function testIsCorrectPage(string $url, string $expected): void
     {
-        $isCorrectPage = $this->crawler->isCorrectPage($url);
+        $isCorrectPage = HttpHelper::isAvailablePage($url);
 
         $this->assertEquals($isCorrectPage, $expected);
     }

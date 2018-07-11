@@ -3,7 +3,8 @@
 namespace Tests\Library\Crawler\Feature;
 
 use DOMDocument;
-use App\Library\Crawler;
+use App\Library\Crawler\Crawler;
+use App\Library\Crawler\Storage\ArrayStorage;
 
 /**
  * Class EventTest
@@ -24,7 +25,7 @@ class EventTest extends \PHPUnit\Framework\TestCase
     {
         parent::setUp();
 
-        $this->crawler = new Crawler();
+        $this->crawler = new Crawler(new ArrayStorage());
     }
 
     /** @test */

@@ -1,35 +1,20 @@
 <?php
 
-namespace Tests\Library\Crawler\Unit\Utility;
+namespace Tests\Library\Crawler\Unit;
 
-use App\Library\Crawler;
+use App\Library\Crawler\Helper\UrlHelper;
 
 /**
- * Class BuildUrlTest
+ * Class UrlHelperTest
  *
- * @package Tests\Library\Crawler\Unit\Utility
+ * @package Tests\Library\Crawler\Unit
  */
-class BuildUrlTest extends \PHPUnit\Framework\TestCase
+class UrlHelperTest extends \PHPUnit\Framework\TestCase
 {
     /**
-     * @var Crawler
-     */
-    private $crawler;
-
-    /**
      * @inheritdoc
      */
-    public function setUp(): void
-    {
-        parent::setUp();
-
-        $this->crawler = new Crawler();
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function additionProvider(): array
+    public function additionProviderForBuildUrl(): array
     {
         return [
             [['/', 'http://site.ru'], 'http://site.ru/'],
@@ -58,20 +43,74 @@ class BuildUrlTest extends \PHPUnit\Framework\TestCase
             [['javascript:alert(\'Hello World!\');', 'http://site.ru'], ''],
             [['mailto:site@example.ru?Subject=Hello%20again', 'http://site.ru'], ''],
             [['skype:username?call', 'http://site.ru'], ''],
+
             [['http://yandex.ru/cy?base=0&host=site.ru', 'http://site.ru'], '']
         ];
     }
 
     /**
-     * @dataProvider additionProvider
+     * @inheritdoc
+     */
+    public function additionProviderForGetDomain(): array
+    {
+        return [
+            ['http://site.ru', 'site.ru'],
+            ['http://www.site.ru', 'site.ru'],
+            ['http://www.test.site.ru', 'site.ru'],
+
+            ['https://site.ru', 'site.ru'],
+            ['https://www.site.ru', 'site.ru'],
+            ['https://www.test.site.ru', 'site.ru'],
+        ];
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function additionProviderForUnParseUrl(): array
+    {
+        return [
+            ['http://site.ru', 'http://site.ru'],
+            ['https://site.ru', 'https://site.ru'],
+
+            ['http://site.ru/info', 'http://site.ru/info'],
+        ];
+    }
+
+    /**
+     * @dataProvider additionProviderForBuildUrl
      * @param array $data
      * @param string $expected
      */
     public function testBuildUrl(array $data, string $expected): void
     {
         list($url, $currentUrl) = $data;
-        $buildUrl = $this->crawler->buildUrl($url, $currentUrl);
+        $buildUrl = UrlHelper::buildUrl($url, $currentUrl);
 
         $this->assertEquals($expected, $buildUrl);
+    }
+
+    /**
+     * @dataProvider additionProviderForGetDomain
+     * @param string $url
+     * @param string $expected
+     */
+    public function testGetDomainFromUrl(string $url, string $expected): void
+    {
+        $domain = UrlHelper::getDomain($url);
+
+        $this->assertEquals($expected, $domain);
+    }
+
+    /**
+     * @dataProvider additionProviderForUnParseUrl
+     * @param string $urlForPars
+     * @param string $expected
+     */
+    public function testUnParseUrl(string $urlForPars, string $expected): void
+    {
+        $url = UrlHelper::unParseUrl(parse_url($urlForPars));
+
+        $this->assertEquals($expected, $url);
     }
 }

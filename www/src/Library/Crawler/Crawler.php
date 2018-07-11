@@ -12,6 +12,9 @@ use App\Library\Crawler\Helper\HttpHelper;
 /**
  * Crawler
  *
+ * TODO: решить вопрос с якорями (#)
+ * TODO: дописать тесты
+ *
  * Note:
  * Uses the DOMDocument extension.
  *

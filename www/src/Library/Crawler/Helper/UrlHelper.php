@@ -46,6 +46,12 @@ class UrlHelper
             $isExternal = true;
         }
 
+        if ($isExternal) {
+            if (self::getDomain($href) !== self::getDomain($currentUrl)) {
+                return null;
+            }
+        }
+
         if (isset($parts['path'])) {
             if (!empty($parts['path']) && $parts['path'][0] === '/') {
                 if (mb_strlen($parts['path']) > 1) {

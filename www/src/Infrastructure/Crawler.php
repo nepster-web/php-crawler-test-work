@@ -2,13 +2,14 @@
 
 namespace App\Infrastructure;
 
-use Exception;
 use DOMDocument;
 use App\Infrastructure\Helper\ArrayHelper;
 use App\Infrastructure\Contract\ReportSaver;
 use App\Infrastructure\Factory\CrawlerFactory;
+use App\Infrastructure\Contract\ReportStorage;
 use App\Library\Crawler\Crawler as VendorCrawler;
 use App\Infrastructure\Factory\ReportSaverFactory;
+use App\Infrastructure\Report\ReportNameGenerator;
 
 /**
  * Class Crawler
@@ -23,9 +24,9 @@ class Crawler implements \App\Infrastructure\Contract\Crawler
     private $crawler;
 
     /**
-     * @var array
+     * @var ReportStorage
      */
-    private $report = [];
+    private $reportStorage;
 
     /**
      * @var string
@@ -44,9 +45,11 @@ class Crawler implements \App\Infrastructure\Contract\Crawler
 
     /**
      * Crawler constructor.
+     * @param ReportStorage $reportStorage
      */
-    public function __construct()
+    public function __construct(ReportStorage $reportStorage)
     {
+        $this->reportStorage = $reportStorage;
         $this->crawler = (new CrawlerFactory())();
     }
 
@@ -57,19 +60,21 @@ class Crawler implements \App\Infrastructure\Contract\Crawler
     {
         $crawler = $this->crawler;
 
+        $reportName = ReportNameGenerator::generateName($url);
+
         $crawler->on($crawler::EVENT_BEFORE_HIT_CRAWL, function (string $href, int $depth): void {
             $this->stepUrlLoadTime = microtime(true);
         });
 
-        $crawler->on($crawler::EVENT_HIT_CRAWL, function (string $href, int $depth, DOMDocument $dom): void {
+        $crawler->on($crawler::EVENT_HIT_CRAWL, function (string $href, int $depth, DOMDocument $dom) use ($reportName): void {
             $imgLength = $dom->getElementsByTagName('img')->length;
             $processTime = sprintf('%.6F', microtime(true) - $this->stepUrlLoadTime);
-            $this->report[] = [
+            $this->reportStorage->add($reportName, [
                 'href' => $href,
                 'depth' => $depth,
                 'imgLength' => $imgLength,
                 'processTime' => $processTime
-            ];
+            ]);
 
             $this->stepUrlLoadTime = null;
             $this->show('  - ' . $href . ' [depth: ' . $depth . '] [img: ' . $imgLength . ']' . PHP_EOL);
@@ -84,7 +89,7 @@ class Crawler implements \App\Infrastructure\Contract\Crawler
         });
 
         $crawler->crawl($url, $depth);
-        $this->report($url);
+        $this->saveReport($reportName, $url);
     }
 
     /**
@@ -96,21 +101,23 @@ class Crawler implements \App\Infrastructure\Contract\Crawler
     }
 
     /**
+     * @param string $reportName
      * @param string $url
-     * @throws Exception
      */
-    private function report(string $url)
+    private function saveReport(string $reportName, string $url)
     {
+        $report = $this->reportStorage->get($reportName);
+
         ArrayHelper::sortAssociativeArrayByKey(
-            $this->report,
+            $report,
             $this->reportOrderByKey,
             $this->reportOrderByDesc
         );
 
         /** @var ReportSaver $reportSaver */
-        $reportSaver = (new ReportSaverFactory())($this->report, $url);
+        $reportSaver = (new ReportSaverFactory())($report, $reportName, $url);
         $reportSaver->save();
 
-        $this->show('Generate report file: ' . $reportSaver->getReportName() . PHP_EOL);
+        $this->show('Generate report file: ' . $reportName . PHP_EOL);
     }
 }

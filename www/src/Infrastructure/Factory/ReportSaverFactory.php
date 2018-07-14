@@ -15,13 +15,14 @@ class ReportSaverFactory
 {
     /**
      * @param array $report
+     * @param string $reportName
      * @param null|string $url
      * @return ReportSaver
      */
-    public function __invoke(array $report, ?string $url = null): ReportSaver
+    public function __invoke(array $report, string $reportName, ?string $url = null): ReportSaver
     {
         $reportDir = Config::getInstance()->get('reportsPath');
 
-        return (new HtmlReportSaver($report, $reportDir, $url));
+        return (new HtmlReportSaver($report, $reportDir, $reportName, $url));
     }
 }

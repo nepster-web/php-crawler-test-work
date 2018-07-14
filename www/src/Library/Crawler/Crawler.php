@@ -12,8 +12,6 @@ use App\Library\Crawler\Helper\HttpHelper;
 /**
  * Crawler
  *
- * TODO: решить вопрос с якорями (#)
- *
  * Note:
  * Uses the DOMDocument extension.
  *
@@ -187,7 +185,10 @@ class Crawler
         $nextDepthUrlList = $this->convertHrefListToUrlListForParentUrl($url, $hrefList);
 
         array_map(function (string $url) use ($depth) {
-            if ($this->storage->hasDetectedUrl($url) === false) {
+            if (
+                $this->storage->hasDetectedUrl($url) === false &&
+                $this->storage->hasDetectedUrl(rtrim($url, '/')) === false
+            ) {
                 $this->storage->addDetectedUrl($url, $depth);
             }
         }, $nextDepthUrlList);
@@ -223,11 +224,18 @@ class Crawler
                 UrlHelper::getDomain($urlFromHref) === UrlHelper::getDomain($this->startUrl) &&
                 in_array($urlFromHref, $urlList) === false
             ) {
+                $urlFromHref = strtok($urlFromHref, '#');
                 array_push($urlList, $urlFromHref);
             }
         }
 
-        return array_values($urlList);
+        foreach ($urlList as $i => $url) {
+            if (substr($url, -1, 1) === '/' && in_array(rtrim($url, '/'), $urlList)) {
+                unset($urlList[$i]);
+            }
+        }
+
+        return array_values(array_filter($urlList));
     }
 
     /**

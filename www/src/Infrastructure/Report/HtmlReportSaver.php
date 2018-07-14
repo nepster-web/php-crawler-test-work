@@ -15,11 +15,6 @@ class HtmlReportSaver implements \App\Infrastructure\Contract\ReportSaver
     /**
      * @var string
      */
-    private $extension = '.html';
-
-    /**
-     * @var string
-     */
     private $reportPath;
 
     /**
@@ -49,27 +44,21 @@ class HtmlReportSaver implements \App\Infrastructure\Contract\ReportSaver
 
     /**
      * HtmlReportSaver constructor.
-     *
      * @param array $report
      * @param string $reportPath
+     * @param string $reportName
      * @param null|string $domain
      */
     public function __construct(
         array $report,
         string $reportPath,
+        string $reportName,
         ?string $domain
     ) {
         $this->report = $report;
+        $this->reportName = $reportName;
         $this->reportPath = $reportPath;
         $this->domain = $domain;
-    }
-
-    /**
-     * @return string
-     */
-    public function getReportName(): string
-    {
-        return $this->reportName;
     }
 
     /**
@@ -77,8 +66,6 @@ class HtmlReportSaver implements \App\Infrastructure\Contract\ReportSaver
      */
     public function save(): void
     {
-        $this->generateReportName();
-
         $report = str_replace([
             '{title}',
             '{content}',
@@ -91,22 +78,6 @@ class HtmlReportSaver implements \App\Infrastructure\Contract\ReportSaver
 
         if (!file_put_contents($file, $report)) {
             throw new LogicException('Unable to write to a file: "' . $file . '"');
-        }
-    }
-
-    /**
-     * Generate report name
-     */
-    private function generateReportName(): void
-    {
-        $dateWithExtension = date('d.m.Y') . $this->extension;
-        $this->reportName = 'report_' . $dateWithExtension;
-
-        if (empty($this->domain) === false) {
-            $domain = parse_url($this->domain, PHP_URL_HOST);
-            if (empty($domain) === false) {
-                $this->reportName = str_replace('report_', $domain . '_', $this->reportName);
-            }
         }
     }
 

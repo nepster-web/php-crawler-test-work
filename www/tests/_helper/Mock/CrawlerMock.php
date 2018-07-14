@@ -10,7 +10,7 @@ namespace Tests\_helper\Mock;
 class CrawlerMock implements \App\Infrastructure\Contract\Crawler
 {
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function crawl(string $url, int $depth = 5): void
     {

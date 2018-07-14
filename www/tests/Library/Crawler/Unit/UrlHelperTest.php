@@ -12,7 +12,7 @@ use App\Library\Crawler\Helper\UrlHelper;
 class UrlHelperTest extends \PHPUnit\Framework\TestCase
 {
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function additionProviderForBuildUrl(): array
     {
@@ -49,7 +49,7 @@ class UrlHelperTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function additionProviderForGetDomain(): array
     {
@@ -65,7 +65,7 @@ class UrlHelperTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function additionProviderForUnParseUrl(): array
     {

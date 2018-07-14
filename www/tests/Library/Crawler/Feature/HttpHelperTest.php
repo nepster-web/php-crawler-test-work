@@ -12,7 +12,7 @@ use App\Library\Crawler\Helper\HttpHelper;
 class HttpHelperTest extends \PHPUnit\Framework\TestCase
 {
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function additionProvider(): array
     {

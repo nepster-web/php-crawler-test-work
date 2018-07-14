@@ -15,22 +15,22 @@ class ReportNameGenerator
     private static $extension = '.html';
 
     /**
-     * @param null|string $domain
+     * @param null|string $prefix
      * @return string
      */
-    public static function generateName(?string $domain = null): string
+    public static function generateName(?string $prefix = null): string
     {
-        $dateWithExtension = date('d.m.Y') . self::$extension;
-        $reportName = 'report_' . $dateWithExtension;
+        $reportName = date('d.m.Y') . self::$extension;
 
-        if (empty($domain) === false) {
-            $domain = parse_url($domain, PHP_URL_HOST);
+        if (empty($prefix) === false) {
+            $domain = parse_url($prefix, PHP_URL_HOST);
             if (empty($domain) === false) {
-                $reportName = str_replace('report_', $domain . '_', $reportName);
+                return $domain . '_' . $reportName;
             }
+            return $prefix . '_' . $reportName;
         }
 
-        return $reportName;
+        return 'report_' . $reportName;
     }
 
 }

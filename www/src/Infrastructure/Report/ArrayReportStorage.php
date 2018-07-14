@@ -33,8 +33,9 @@ class ArrayReportStorage implements \App\Infrastructure\Contract\ReportStorage
     public function get(string $reportName): array
     {
         if (isset($this->reports[$reportName]) === false) {
-            throw new LogicException('Report "' . $reportName . '" does\'t exist');
+            throw new LogicException('Report "' . $reportName . '" doesn\'t exists.');
         }
+
         return $this->reports[$reportName];
     }
 

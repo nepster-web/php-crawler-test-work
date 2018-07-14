@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Application\Unit\Validation;
+namespace Tests\Application\Unit\Infrastructure\Validation;
 
 use Exception;
 use InvalidArgumentException;
@@ -9,12 +9,12 @@ use App\Infrastructure\Validation\SimpleExceptionValidator;
 /**
  * Class SimpleExceptionValidatorTest
  *
- * @package Tests\Application\Unit\Validation
+ * @package Tests\Application\Unit\Infrastructure\Validation
  */
 class SimpleExceptionValidatorTest extends \PHPUnit\Framework\TestCase
 {
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function additionCorrectProvider(): array
     {
@@ -29,7 +29,7 @@ class SimpleExceptionValidatorTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function additionIncorrectProvider(): array
     {
@@ -48,6 +48,7 @@ class SimpleExceptionValidatorTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
+     * @test
      * @dataProvider additionCorrectProvider
      * @param array $data
      */
@@ -74,6 +75,7 @@ class SimpleExceptionValidatorTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
+     * @test
      * @dataProvider additionIncorrectProvider
      * @param array $data
      * @param string $expected

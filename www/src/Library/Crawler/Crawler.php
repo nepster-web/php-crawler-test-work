@@ -62,26 +62,26 @@ class Crawler
      *
      * @var array
      */
-    private $events = [];
+    protected $events = [];
 
     /**
      * Start page for parsing
      *
      * @var string
      */
-    private $startUrl;
+    protected $startUrl;
 
     /**
      * Max depth for stopping this script
      *
      * @var int
      */
-    private $maxDepth = 5;
+    protected $maxDepth = 5;
 
     /**
      * @var Storage
      */
-    private $storage;
+    protected $storage;
 
     /**
      * Crawler constructor.
@@ -147,7 +147,7 @@ class Crawler
      * @param string $url
      * @param int $depth
      */
-    private function process(string $url, int $depth = 1): void
+    protected function process(string $url, int $depth = 1): void
     {
         if (
             $this->storage->hasVisitedUrl($url) ||
@@ -202,7 +202,7 @@ class Crawler
      * @param string $url
      * @return bool
      */
-    private function isStartUrl(string $url): bool
+    protected function isStartUrl(string $url): bool
     {
         return (rtrim($url, '/') . '/' === rtrim($this->startUrl, '/') . '/');
     }
@@ -212,7 +212,7 @@ class Crawler
      * @param array $hrefList
      * @return array
      */
-    private function convertHrefListToUrlListForParentUrl(string $url, array $hrefList): array
+    protected function convertHrefListToUrlListForParentUrl(string $url, array $hrefList): array
     {
         $urlList = [];
 
@@ -235,7 +235,7 @@ class Crawler
      * @param string $url
      * @return DOMDocument|null
      */
-    private function parseLink(string $url): ?DOMDocument
+    protected function parseLink(string $url): ?DOMDocument
     {
         $dom = new DOMDocument('1.0');
         @$dom->loadHTMLFile($url);
@@ -257,7 +257,7 @@ class Crawler
      * @param string $attribute
      * @return array
      */
-    private function parseAttributeTagValues(DOMDocument $dom, string $tag, string $attribute): array
+    protected function parseAttributeTagValues(DOMDocument $dom, string $tag, string $attribute): array
     {
         $anchors = $dom->getElementsByTagName($tag);
         $attributeValues = [];

@@ -1,13 +1,13 @@
 <?php
 
-namespace Tests\Application\Unit\Helper;
+namespace Tests\Application\Unit\Infrastructure\Helper;
 
 use App\Infrastructure\Helper\ArrayHelper;
 
 /**
  * Class ArrayHelperTest
  *
- * @package Tests\Application\Unit\Helper
+ * @package Tests\Application\Unit\Infrastructure\Helper
  */
 class ArrayHelperTest extends \PHPUnit\Framework\TestCase
 {

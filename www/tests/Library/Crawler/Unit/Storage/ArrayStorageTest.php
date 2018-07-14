@@ -17,7 +17,7 @@ class ArrayStorageTest extends \PHPUnit\Framework\TestCase
     private $storage;
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function setUp(): void
     {
@@ -26,11 +26,45 @@ class ArrayStorageTest extends \PHPUnit\Framework\TestCase
         $this->storage = new ArrayStorage();
     }
 
-    /**
-     *
-     */
-    public function testTest(): void
+    /** @test */
+    public function testDetectedUrl(): void
     {
-        $this->assertTrue(false);
+        $this->storage->addDetectedUrl('https://example.com', 1, false);
+
+        $this->assertTrue($this->storage->hasDetectedUrl('https://example.com'));
+        $this->assertFalse($this->storage->hasVisitedUrl('https://example.com'));
+    }
+
+    /** @test */
+    public function testVisitedUrl(): void
+    {
+        $this->storage->addDetectedUrl('https://example.com', 1, true);
+
+        $this->assertTrue($this->storage->hasDetectedUrl('https://example.com'));
+        $this->assertTrue($this->storage->hasVisitedUrl('https://example.com'));
+    }
+
+    /** @test */
+    public function testSetVisitedUrl(): void
+    {
+        $this->storage->addDetectedUrl('https://example.com', 1, false);
+        $this->storage->setVisitedUrl('https://example.com');
+
+        $this->assertTrue($this->storage->hasVisitedUrl('https://example.com'));
+    }
+
+    /** @test */
+    public function testSetNotExistentVisitedUrl(): void
+    {
+        $this->storage->setVisitedUrl('https://example.com');
+
+        $this->assertFalse($this->storage->hasVisitedUrl('https://example.com'));
+    }
+
+    /** @test */
+    public function testNotExistentDetectedUrl(): void
+    {
+        $this->assertFalse($this->storage->hasDetectedUrl('https://example.com'));
+        $this->assertFalse($this->storage->hasVisitedUrl('https://example.com'));
     }
 }

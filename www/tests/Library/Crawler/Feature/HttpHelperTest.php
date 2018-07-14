@@ -20,9 +20,6 @@ class HttpHelperTest extends \PHPUnit\Framework\TestCase
             ['http://php.net', true],
             ['https://secure.php.net', true],
 
-            ['http://php.net/', true],
-            ['https://secure.php.net/', true],
-
             ['http://php.net/logo.php', false],
         ];
     }

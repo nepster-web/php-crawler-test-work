@@ -26,7 +26,7 @@ class SimpleExceptionValidator implements \App\Infrastructure\Contract\Validator
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function validate(): void
     {

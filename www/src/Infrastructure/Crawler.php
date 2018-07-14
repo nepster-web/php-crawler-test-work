@@ -51,7 +51,7 @@ class Crawler implements \App\Infrastructure\Contract\Crawler
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function crawl(string $url, int $depth = 5): void
     {

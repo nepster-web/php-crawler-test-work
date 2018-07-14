@@ -1,31 +1,31 @@
 <?php
 
-namespace Tests\Library\Crawler\Feature;
+namespace Tests\Library\Crawler\Unit;
 
 use DOMDocument;
-use App\Library\Crawler\Crawler;
 use App\Library\Crawler\Storage\ArrayStorage;
+use Tests\Library\Crawler\_helper\Mock\CrawlerMock;
 
 /**
  * Class EventTest
  *
- * @package Tests\Library\Crawler\Feature
+ * @package Tests\Library\Crawler\Unit
  */
 class EventTest extends \PHPUnit\Framework\TestCase
 {
     /**
-     * @var Crawler
+     * @var CrawlerMock
      */
     private $crawler;
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function setUp(): void
     {
         parent::setUp();
 
-        $this->crawler = new Crawler(new ArrayStorage());
+        $this->crawler = new CrawlerMock(new ArrayStorage());
     }
 
     /** @test */
@@ -33,7 +33,7 @@ class EventTest extends \PHPUnit\Framework\TestCase
     {
         $eventCall = false;
 
-        $this->crawler->on(Crawler::EVENT_BEFORE_HIT_CRAWL, function (string $href) use (&$eventCall) {
+        $this->crawler->on(CrawlerMock::EVENT_BEFORE_HIT_CRAWL, function (string $href) use (&$eventCall) {
             $eventCall = true;
         });
 
@@ -47,7 +47,7 @@ class EventTest extends \PHPUnit\Framework\TestCase
     {
         $eventCall = false;
 
-        $this->crawler->on(Crawler::EVENT_HIT_CRAWL,
+        $this->crawler->on(CrawlerMock::EVENT_HIT_CRAWL,
             function (string $href, string $depth, DOMDocument $dom) use (&$eventCall) {
                 $eventCall = true;
             });
@@ -62,7 +62,7 @@ class EventTest extends \PHPUnit\Framework\TestCase
     {
         $eventCall = false;
 
-        $this->crawler->on(Crawler::EVENT_BEFORE_CRAWL, function (string $href) use (&$eventCall) {
+        $this->crawler->on(CrawlerMock::EVENT_BEFORE_CRAWL, function (string $href) use (&$eventCall) {
             $eventCall = true;
         });
 
@@ -76,7 +76,7 @@ class EventTest extends \PHPUnit\Framework\TestCase
     {
         $eventCall = false;
 
-        $this->crawler->on(Crawler::EVENT_AFTER_CRAWL, function (string $href) use (&$eventCall) {
+        $this->crawler->on(CrawlerMock::EVENT_AFTER_CRAWL, function (string $href) use (&$eventCall) {
             $eventCall = true;
         });
 

@@ -100,7 +100,10 @@ class Crawler
      */
     public function crawl(string $url, ?int $maxDepth = null): void
     {
-        if (isset($this->events[self::EVENT_BEFORE_CRAWL]) && is_callable($this->events[self::EVENT_BEFORE_CRAWL])) {
+        if (
+            isset($this->events[self::EVENT_BEFORE_CRAWL]) &&
+            is_callable($this->events[self::EVENT_BEFORE_CRAWL])
+        ) {
             call_user_func_array($this->events[self::EVENT_BEFORE_CRAWL], [$url]);
         }
 
@@ -108,7 +111,10 @@ class Crawler
         $this->maxDepth = $maxDepth ?: $this->maxDepth;
         $this->process($this->startUrl);
 
-        if (isset($this->events[self::EVENT_AFTER_CRAWL]) && is_callable($this->events[self::EVENT_AFTER_CRAWL])) {
+        if (
+            isset($this->events[self::EVENT_AFTER_CRAWL]) &&
+            is_callable($this->events[self::EVENT_AFTER_CRAWL])
+        ) {
             call_user_func_array($this->events[self::EVENT_AFTER_CRAWL], [$url]);
         }
     }
@@ -143,18 +149,31 @@ class Crawler
      */
     private function process(string $url, int $depth = 1): void
     {
-        if ($this->storage->hasVisitedUrl($url) || $depth > $this->maxDepth || HttpHelper::isAvailablePage($url) === false) {
+        if (
+            $this->storage->hasVisitedUrl($url) ||
+            $depth > $this->maxDepth ||
+            HttpHelper::isAvailablePage($url) === false
+        ) {
             return;
         }
 
-        if (isset($this->events[self::EVENT_BEFORE_HIT_CRAWL]) && is_callable($this->events[self::EVENT_BEFORE_HIT_CRAWL])) {
+        if (
+            isset($this->events[self::EVENT_BEFORE_HIT_CRAWL]) &&
+            is_callable($this->events[self::EVENT_BEFORE_HIT_CRAWL])
+        ) {
             call_user_func_array($this->events[self::EVENT_BEFORE_HIT_CRAWL], [$url, $depth]);
         }
 
         $urlDomDocument = $this->parseLink($url);
 
-        if (isset($this->events[self::EVENT_HIT_CRAWL]) && is_callable($this->events[self::EVENT_HIT_CRAWL])) {
-            call_user_func_array($this->events[self::EVENT_HIT_CRAWL], [$url, $depth, $urlDomDocument]);
+        if (
+            isset($this->events[self::EVENT_HIT_CRAWL]) &&
+            is_callable($this->events[self::EVENT_HIT_CRAWL])
+        ) {
+            call_user_func_array(
+                $this->events[self::EVENT_HIT_CRAWL],
+                [$url, $depth, $urlDomDocument]
+            );
         }
 
         if ($this->storage->hasDetectedUrl($url)) {
@@ -221,7 +240,11 @@ class Crawler
         $dom = new DOMDocument('1.0');
         @$dom->loadHTMLFile($url);
 
-        if (is_object($dom) && isset($dom->documentURI) && empty($dom->documentURI) == false) {
+        if (
+            is_object($dom) &&
+            isset($dom->documentURI) &&
+            empty($dom->documentURI) == false
+        ) {
             return $dom;
         }
 

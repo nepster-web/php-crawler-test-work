@@ -34,19 +34,6 @@ class Config
     }
 
     /**
-     * @param string $key
-     * @return mixed|null
-     */
-    public function get(string $key)
-    {
-        if (isset($this->config[$key])) {
-            return $this->config[$key];
-        }
-
-        throw new LogicException('Param "' . $key . '" doesn\'t exists.');
-    }
-
-    /**
      *
      */
     private function __clone()
@@ -60,5 +47,18 @@ class Config
     private function __construct(array $config)
     {
         $this->config = $config;
+    }
+
+    /**
+     * @param string $key
+     * @return mixed|null
+     */
+    public function get(string $key)
+    {
+        if (isset($this->config[$key])) {
+            return $this->config[$key];
+        }
+
+        throw new LogicException('Param "' . $key . '" doesn\'t exists.');
     }
 }

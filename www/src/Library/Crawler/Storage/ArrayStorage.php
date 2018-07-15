@@ -16,6 +16,13 @@ class ArrayStorage implements Storage
      */
     private $detectedUrls = [];
 
+
+    // todo
+    public function test(): array
+    {
+        return $this->detectedUrls;
+    }
+
     /**
      * {@inheritdoc}
      */

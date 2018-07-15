@@ -106,6 +106,7 @@ class Crawler
 
         $this->startUrl = $url;
         $this->maxDepth = $maxDepth ?: $this->maxDepth;
+
         $this->process($this->startUrl);
 
         if (
@@ -146,38 +147,41 @@ class Crawler
      */
     protected function process(string $url, int $depth = 1): void
     {
-        if (
-            $this->storage->hasVisitedUrl($url) ||
-            $depth > $this->maxDepth ||
-            HttpHelper::isAvailablePage($url) === false
-        ) {
+        if ($depth > $this->maxDepth) {
             return;
         }
 
-        if (
-            isset($this->events[self::EVENT_BEFORE_HIT_CRAWL]) &&
-            is_callable($this->events[self::EVENT_BEFORE_HIT_CRAWL])
-        ) {
-            call_user_func_array($this->events[self::EVENT_BEFORE_HIT_CRAWL], [$url, $depth]);
+        if ($this->storage->hasVisitedUrl($url)) {
+            return;
         }
+
+        if (HttpHelper::isAvailablePage($url) === false) {
+            return;
+        }
+
+        $this->callEvent(self::EVENT_BEFORE_HIT_CRAWL, [$url, $depth]);
 
         $urlDomDocument = $this->parseLink($url);
 
-        if (
-            isset($this->events[self::EVENT_HIT_CRAWL]) &&
-            is_callable($this->events[self::EVENT_HIT_CRAWL])
-        ) {
-            call_user_func_array(
-                $this->events[self::EVENT_HIT_CRAWL],
-                [$url, $depth, $urlDomDocument]
-            );
-        }
+        $this->callEvent(self::EVENT_HIT_CRAWL, [$url, $depth, $urlDomDocument]);
 
         if ($this->storage->hasDetectedUrl($url)) {
             $this->storage->setVisitedUrl($url);
         } else {
-            ++$depth;
             $this->storage->addDetectedUrl($url, $depth, true);
+        }
+
+        ++$depth;
+
+
+        //TODO: представить URL в виде структуры данных: class {url, depth, parentUrl, isVisited ...}
+        //TODO: в случае если depth стоит, как сейчас, ссылки будут либо 2 либо 3 вложенности.
+        //TODO: нужно переработать подход к стореджу и равнивать depth.
+
+
+
+        if ($depth > $this->maxDepth) {
+            return;
         }
 
         $hrefList = $this->parseAttributeTagValues($urlDomDocument, 'a', 'href');
@@ -192,6 +196,20 @@ class Crawler
                 $this->storage->addDetectedUrl($url, $depth);
             }
         }, $nextDepthUrlList);
+
+
+
+        if ($depth === 3) {
+            // TODO: так-как у нас не проверяется depth, то даже если он есть в сторедже,
+            // TODO: в следующую итерацию функции process будет передан depth + 1.
+            // TODO:
+
+            print_r($this->storage->test()); var_dump($depth);
+            print_r($nextDepthUrlList);
+            die();
+        }
+
+
 
         foreach ($nextDepthUrlList as $nextDepthUrl) {
             $this->process($nextDepthUrl, $depth);
@@ -235,7 +253,7 @@ class Crawler
             }
         }
 
-        return array_values(array_filter($urlList));
+        return array_values(array_unique(array_filter($urlList)));
     }
 
     /**
@@ -276,5 +294,16 @@ class Crawler
         }
 
         return $attributeValues;
+    }
+
+    /**
+     * @param string $event
+     * @param array $params
+     */
+    protected function callEvent(string $event, array $params): void
+    {
+        if (isset($this->events[$event]) && is_callable($this->events[$event])) {
+            call_user_func_array($this->events[$event], $params);
+        }
     }
 }

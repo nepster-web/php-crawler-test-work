@@ -3,6 +3,7 @@
 namespace App\Infrastructure;
 
 use DOMDocument;
+use App\Library\Crawler\Entity\Link;
 use App\Infrastructure\Helper\ArrayHelper;
 use App\Infrastructure\Contract\ReportSaver;
 use App\Infrastructure\Factory\CrawlerFactory;
@@ -62,22 +63,22 @@ class Crawler implements \App\Infrastructure\Contract\Crawler
 
         $reportName = ReportNameGenerator::generateName($url);
 
-        $crawler->on($crawler::EVENT_BEFORE_HIT_CRAWL, function (string $href, int $depth): void {
+        $crawler->on($crawler::EVENT_BEFORE_HIT_CRAWL, function (Link $link): void {
             $this->stepUrlLoadTime = microtime(true);
         });
 
-        $crawler->on($crawler::EVENT_HIT_CRAWL, function (string $href, int $depth, DOMDocument $dom) use ($reportName): void {
+        $crawler->on($crawler::EVENT_HIT_CRAWL, function (Link $link, DOMDocument $dom) use ($reportName): void {
             $imgLength = $dom->getElementsByTagName('img')->length;
             $processTime = sprintf('%.6F', microtime(true) - $this->stepUrlLoadTime);
             $this->reportStorage->add($reportName, [
-                'href' => $href,
-                'depth' => $depth,
+                'href' => $link->getUrl(),
+                'depth' => $link->getDepth(),
                 'imgLength' => $imgLength,
                 'processTime' => $processTime
             ]);
 
             $this->stepUrlLoadTime = null;
-            $this->show('  - ' . $href . ' [depth: ' . $depth . '] [img: ' . $imgLength . ']' . PHP_EOL);
+            $this->show('  - ' . $link->getUrl() . ' [depth: ' . $link->getDepth() . '] [img: ' . $imgLength . ']' . PHP_EOL);
         });
 
         $crawler->on($crawler::EVENT_BEFORE_CRAWL, function (string $href): void {

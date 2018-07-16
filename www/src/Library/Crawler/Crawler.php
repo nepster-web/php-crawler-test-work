@@ -5,6 +5,7 @@ namespace App\Library\Crawler;
 use DOMElement;
 use DOMDocument;
 use LogicException;
+use App\Library\Crawler\Entity\Link;
 use App\Library\Crawler\Storage\Storage;
 use App\Library\Crawler\Helper\UrlHelper;
 use App\Library\Crawler\Helper\HttpHelper;
@@ -19,11 +20,11 @@ use App\Library\Crawler\Helper\HttpHelper;
  *
  * $crawler = new Crawler();
  *
- * $crawler->on(Crawler::EVENT_BEFORE_HIT_CRAWL, function(string $href, string $depth): void {
+ * $crawler->on(Crawler::EVENT_BEFORE_HIT_CRAWL, function(Link $link): void {
  *   echo 'before url parse';
  * });
  *
- * $crawler->on(Crawler::EVENT_HIT_CRAWL, function(string $href, string $depth, DOMDocument $dom): void {
+ * $crawler->on(Crawler::EVENT_HIT_CRAWL, function(Link $link, DOMDocument $dom): void {
  *   echo 'after url parse';
  * });
  *
@@ -97,24 +98,14 @@ class Crawler
      */
     public function crawl(string $url, ?int $maxDepth = null): void
     {
-        if (
-            isset($this->events[self::EVENT_BEFORE_CRAWL]) &&
-            is_callable($this->events[self::EVENT_BEFORE_CRAWL])
-        ) {
-            call_user_func_array($this->events[self::EVENT_BEFORE_CRAWL], [$url]);
-        }
+        $this->callEvent(self::EVENT_BEFORE_CRAWL, [$url]);
 
         $this->startUrl = $url;
         $this->maxDepth = $maxDepth ?: $this->maxDepth;
 
         $this->process($this->startUrl);
 
-        if (
-            isset($this->events[self::EVENT_AFTER_CRAWL]) &&
-            is_callable($this->events[self::EVENT_AFTER_CRAWL])
-        ) {
-            call_user_func_array($this->events[self::EVENT_AFTER_CRAWL], [$url]);
-        }
+        $this->callEvent(self::EVENT_AFTER_CRAWL, [$url]);
     }
 
     /**
@@ -151,7 +142,8 @@ class Crawler
             return;
         }
 
-        if ($this->storage->hasVisitedUrl($url)) {
+        $link = $this->storage->findByUrl($url);
+        if (is_null($link) === false && $link->isVisited()) {
             return;
         }
 
@@ -159,26 +151,21 @@ class Crawler
             return;
         }
 
-        $this->callEvent(self::EVENT_BEFORE_HIT_CRAWL, [$url, $depth]);
+        if (is_null($link)) {
+            $link = new Link($url, $depth);
+        } else {
+            $depth = $link->getDepth();
+        }
+
+        $this->callEvent(self::EVENT_BEFORE_HIT_CRAWL, [$link]);
 
         $urlDomDocument = $this->parseLink($url);
 
-        $this->callEvent(self::EVENT_HIT_CRAWL, [$url, $depth, $urlDomDocument]);
+        $link->visited();
 
-        if ($this->storage->hasDetectedUrl($url)) {
-            $this->storage->setVisitedUrl($url);
-        } else {
-            $this->storage->addDetectedUrl($url, $depth, true);
-        }
+        $this->callEvent(self::EVENT_HIT_CRAWL, [$link, $urlDomDocument]);
 
         ++$depth;
-
-
-        //TODO: представить URL в виде структуры данных: class {url, depth, parentUrl, isVisited ...}
-        //TODO: в случае если depth стоит, как сейчас, ссылки будут либо 2 либо 3 вложенности.
-        //TODO: нужно переработать подход к стореджу и равнивать depth.
-
-
 
         if ($depth > $this->maxDepth) {
             return;
@@ -190,26 +177,14 @@ class Crawler
 
         array_map(function (string $url) use ($depth) {
             if (
-                $this->storage->hasDetectedUrl($url) === false &&
-                $this->storage->hasDetectedUrl(rtrim($url, '/')) === false
+                is_null($this->storage->findByUrl($url)) &&
+                is_null($this->storage->findByUrl(rtrim($url, '/')))
             ) {
-                $this->storage->addDetectedUrl($url, $depth);
+                $link = new Link($url, $depth);
+                $link->detected();
+                $this->storage->add($link);
             }
         }, $nextDepthUrlList);
-
-
-
-        if ($depth === 3) {
-            // TODO: так-как у нас не проверяется depth, то даже если он есть в сторедже,
-            // TODO: в следующую итерацию функции process будет передан depth + 1.
-            // TODO:
-
-            print_r($this->storage->test()); var_dump($depth);
-            print_r($nextDepthUrlList);
-            die();
-        }
-
-
 
         foreach ($nextDepthUrlList as $nextDepthUrl) {
             $this->process($nextDepthUrl, $depth);

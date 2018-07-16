@@ -2,6 +2,9 @@
 
 namespace App\Library\Crawler\Storage;
 
+use LogicException;
+use App\Library\Crawler\Entity\Link;
+
 /**
  * Class ArrayStorage
  *
@@ -12,69 +15,50 @@ class ArrayStorage implements Storage
     /**
      * Detected pages
      *
-     * @var array
+     * @var Link[]
      */
-    private $detectedUrls = [];
+    private $detectedLinks = [];
 
-
-    // todo
-    public function test(): array
+    /**
+     * {@inheritdoc}
+     */
+    public function findByUrl(string $url): ?Link
     {
-        return $this->detectedUrls;
+        foreach ($this->detectedLinks as $detectedLink) {
+            if ($detectedLink->getUrl() === $url) {
+                return $detectedLink;
+            }
+        }
+
+        return null;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function addDetectedUrl(string $url, int $depth, bool $isVisited = false): void
+    public function save(Link $link): void
     {
-        if (isset($this->detectedUrls[$depth])) {
-            if (array_key_exists($url, $this->detectedUrls[$depth]) === false) {
-                $this->detectedUrls[$depth][$url] = $isVisited;
+        foreach ($this->detectedLinks as $i => $detectedLink) {
+            if ($detectedLink->getUrl() === $link->getUrl()) {
+                $this->detectedLinks[$i] = $link;
             }
-        } else {
-            $this->detectedUrls[$depth] = [$url => $isVisited];
         }
+
+        throw new LogicException('---');
     }
 
     /**
      * {@inheritdoc}
      */
-    public function hasDetectedUrl(string $url): bool
+    public function add(Link $link): void
     {
-        foreach ($this->detectedUrls as $depth => $detectedUrls) {
-            if (array_key_exists($url, $detectedUrls)) {
-                return true;
+        foreach ($this->detectedLinks as $i => $detectedLink) {
+            if ($detectedLink->getUrl() === $link->getUrl()) {
+                throw new LogicException('---');
             }
         }
 
-        return false;
+        $this->detectedLinks[] = $link;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function hasVisitedUrl(string $url): bool
-    {
-        foreach ($this->detectedUrls as $depth => &$detectedUrls) {
-            if (array_key_exists($url, $detectedUrls)) {
-                return $detectedUrls[$url];
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function setVisitedUrl(string $url): void
-    {
-        foreach ($this->detectedUrls as $depth => &$detectedUrls) {
-            if (array_key_exists($url, $detectedUrls)) {
-                $detectedUrls[$url] = true;
-                break;
-            }
-        }
-    }
 }

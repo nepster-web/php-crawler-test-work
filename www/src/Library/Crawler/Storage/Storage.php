@@ -2,6 +2,8 @@
 
 namespace App\Library\Crawler\Storage;
 
+use App\Library\Crawler\Entity\Link;
+
 /**
  * Interface Storage
  *
@@ -11,25 +13,18 @@ interface Storage
 {
     /**
      * @param string $url
-     * @param int $depth
-     * @param bool $isVisited
+     * @return Link|null
      */
-    public function addDetectedUrl(string $url, int $depth, bool $isVisited = false): void;
+    public function findByUrl(string $url): ?Link;
 
     /**
-     * @param string $url
-     * @return bool
+     * @param Link $link
      */
-    public function hasDetectedUrl(string $url): bool;
+    public function save(Link $link): void;
 
     /**
-     * @param string $url
-     * @return bool
+     * @param Link $link
      */
-    public function hasVisitedUrl(string $url): bool;
+    public function add(Link $link): void;
 
-    /**
-     * @param string $url
-     */
-    public function setVisitedUrl(string $url): void;
 }

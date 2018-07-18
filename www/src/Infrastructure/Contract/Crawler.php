@@ -16,5 +16,4 @@ interface Crawler
      * @param int $depth
      */
     public function crawl(string $url, int $depth = 5): void;
-
 }

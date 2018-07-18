@@ -9,8 +9,5 @@ namespace App\Infrastructure\Contract;
  */
 interface Validator
 {
-    /**
-     *
-     */
     public function validate(): void;
 }

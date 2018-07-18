@@ -2,6 +2,7 @@
 
 namespace Tests\Library\Crawler\Unit\Storage;
 
+use App\Library\Crawler\Entity\Link;
 use App\Library\Crawler\Storage\ArrayStorage;
 
 /**
@@ -27,44 +28,29 @@ class ArrayStorageTest extends \PHPUnit\Framework\TestCase
     }
 
     /** @test */
-    public function testDetectedUrl(): void
+    public function testAddLinkToStorage(): void
     {
-        $this->storage->addDetectedUrl('https://example.com', 1, false);
+        $newLink = new Link('https://example.com', 1);
 
-        $this->assertTrue($this->storage->hasDetectedUrl('https://example.com'));
-        $this->assertFalse($this->storage->hasVisitedUrl('https://example.com'));
+        $this->storage->add($newLink);
+
+        $link = $this->storage->findByUrl($newLink->getUrl());
+
+        $this->assertEquals($newLink->getUrl(), $link->getUrl());
     }
 
     /** @test */
-    public function testVisitedUrl(): void
+    public function testSaveLink(): void
     {
-        $this->storage->addDetectedUrl('https://example.com', 1, true);
+        $link = new Link('https://example.com', 1);
+        $this->storage->add($link);
 
-        $this->assertTrue($this->storage->hasDetectedUrl('https://example.com'));
-        $this->assertTrue($this->storage->hasVisitedUrl('https://example.com'));
-    }
+        $link->changeDepth(2);
 
-    /** @test */
-    public function testSetVisitedUrl(): void
-    {
-        $this->storage->addDetectedUrl('https://example.com', 1, false);
-        $this->storage->setVisitedUrl('https://example.com');
+        $this->storage->save($link);
 
-        $this->assertTrue($this->storage->hasVisitedUrl('https://example.com'));
-    }
+        $link = $this->storage->findByUrl($link->getUrl());
 
-    /** @test */
-    public function testSetNotExistentVisitedUrl(): void
-    {
-        $this->storage->setVisitedUrl('https://example.com');
-
-        $this->assertFalse($this->storage->hasVisitedUrl('https://example.com'));
-    }
-
-    /** @test */
-    public function testNotExistentDetectedUrl(): void
-    {
-        $this->assertFalse($this->storage->hasDetectedUrl('https://example.com'));
-        $this->assertFalse($this->storage->hasVisitedUrl('https://example.com'));
+        $this->assertEquals(2, $link->getDepth());
     }
 }

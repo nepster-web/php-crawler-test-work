@@ -35,5 +35,4 @@ class HttpHelperTest extends \PHPUnit\Framework\TestCase
 
         $this->assertEquals($isCorrectPage, $expected);
     }
-
 }

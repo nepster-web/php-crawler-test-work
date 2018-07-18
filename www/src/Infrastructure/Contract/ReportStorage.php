@@ -20,5 +20,4 @@ interface ReportStorage
      * @return array
      */
     public function get(string $reportName): array;
-
 }

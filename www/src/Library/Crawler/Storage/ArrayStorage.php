@@ -41,10 +41,11 @@ class ArrayStorage implements Storage
         foreach ($this->detectedLinks as $i => $detectedLink) {
             if ($detectedLink->getUrl() === $link->getUrl()) {
                 $this->detectedLinks[$i] = $link;
+                return ;
             }
         }
 
-        throw new LogicException('---');
+        throw new LogicException('Link with URL "' . $link->getUrl() . '" not found.');
     }
 
     /**
@@ -54,7 +55,7 @@ class ArrayStorage implements Storage
     {
         foreach ($this->detectedLinks as $i => $detectedLink) {
             if ($detectedLink->getUrl() === $link->getUrl()) {
-                throw new LogicException('---');
+                throw new LogicException('Link with URL "' . $link->getUrl() . '" already exists.');
             }
         }
 

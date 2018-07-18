@@ -80,36 +80,23 @@ class Link
         $this->depth = $depth;
     }
 
-    /**
-     *
-     */
     public function visited(): void
     {
         $this->isVisited = true;
     }
 
-    /**
-     *
-     */
     public function unVisited(): void
     {
         $this->isVisited = false;
     }
 
-    /**
-     *
-     */
     public function detected(): void
     {
         $this->isDetected = true;
     }
 
-    /**
-     *
-     */
     public function unDetected(): void
     {
         $this->isDetected = false;
     }
-
 }

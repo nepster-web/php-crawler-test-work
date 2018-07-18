@@ -16,24 +16,11 @@ class CrawlerMock extends \App\Library\Crawler\Crawler
      */
     protected function process(string $url, int $depth = 1): void
     {
-        if (
-            isset($this->events[self::EVENT_BEFORE_HIT_CRAWL]) &&
-            is_callable($this->events[self::EVENT_BEFORE_HIT_CRAWL])
-        ) {
-            call_user_func_array($this->events[self::EVENT_BEFORE_HIT_CRAWL], [$url, $depth]);
-        }
+        $this->callEvent(self::EVENT_BEFORE_HIT_CRAWL, [$url, $depth]);
 
         $urlDomDocument = $dom = new DOMDocument('1.0', 'utf-8');
 
-        if (
-            isset($this->events[self::EVENT_HIT_CRAWL]) &&
-            is_callable($this->events[self::EVENT_HIT_CRAWL])
-        ) {
-            call_user_func_array(
-                $this->events[self::EVENT_HIT_CRAWL],
-                [$url, $depth, $urlDomDocument]
-            );
-        }
+        $this->callEvent(self::EVENT_HIT_CRAWL, [$url, $depth, $urlDomDocument]);
     }
 
 }

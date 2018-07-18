@@ -7,10 +7,20 @@ error_reporting(-1);
 
 require(__DIR__ . '/vendor/autoload.php');
 
-$application = new App\Application();
-$result = $application->run();
-if ($result !== true) {
-    echo $application->getError() . PHP_EOL;
-}
+try {
 
-exit(0);
+    $crawler = new \App\Infrastructure\Crawler(
+        new \App\Infrastructure\Report\ArrayReportStorage()
+    );
+
+    $application = new App\CliApplication($crawler);
+    $application->run();
+    echo "\n";
+    exit(0);
+
+} catch (Exception $e) {
+
+    echo 'ERROR: ' . $e->getMessage() . "\n";
+    exit($e->getCode());
+
+}
